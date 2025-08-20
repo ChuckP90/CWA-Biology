@@ -1,1004 +1,2138 @@
-import React, { useState, useEffect } from "react";
-
-// Main App Component
-export default function App() {
-  const [currentPage, setCurrentPage] = useState("home");
-  const [currentLanguage, setCurrentLanguage] = useState("en");
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [activeAdminTab, setActiveAdminTab] = useState("units");
-  const [navigationHistory, setNavigationHistory] = useState(["home"]);
-  const [user, setUser] = useState(null);
-  const [loginForm, setLoginForm] = useState({ username: "", password: "", role: "student" });
-  const [signupForm, setSignupForm] = useState({ 
-    name: "", 
-    email: "", 
-    username: "", 
-    password: "", 
-    confirmPassword: "", 
-    role: "student", 
-    class: "" 
-  });
-  const [signupStep, setSignupStep] = useState(1); // 1: form, 2: verification
-  const [verificationCode, setVerificationCode] = useState("");
-  const [isVerifying, setIsVerifying] = useState(false);
-
-  // Master admin configuration
-  const ADMIN_CONFIG = {
-    secretCode: "CWA2024BIO",
-    accessLevels: {
-      FULL_ACCESS: "full",
-      CONTENT_ONLY: "content",
-      VIEW_ONLY: "view"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CWA Secondary Biology</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #e8f5e8;
+      color: #333;
+      line-height: 1.6;
     }
-  };
-
-  // Initial content data
-  const [content, setContent] = useState([
-    {
-      unit: "Unit 1.1",
-      title: "Characteristics of Living Organisms",
-      articles: [
-        { 
-          id: 1, 
-          title: "Introduction to Biology", 
-          level: "Beginner", 
-          content: "All living organisms share certain characteristics that distinguish them from non-living things. These include nutrition, respiration, movement, excretion, growth, reproduction, and sensitivity.",
-          lastUpdated: "2024-01-15"
-        }
-      ],
-      exercises: [
-        { 
-          id: 1, 
-          question: "What are the seven characteristics of living organisms?", 
-          type: "short-answer",
-          difficulty: "easy",
-          points: 5
-        }
-      ],
-      videos: [
-        { 
-          id: 1, 
-          title: "Introduction to Cells", 
-          url: "https://placehold.co/400x225?text=Video:+Introduction+to+Cells", 
-          duration: "5:30",
-          thumbnail: "https://placehold.co/400x225?text=Cell+Video",
-          description: "Basic introduction to cell structure and function"
-        }
-      ]
-    },
-    {
-      unit: "Unit 1.2",
-      title: "Testing Predictions",
-      articles: [
-        { 
-          id: 1, 
-          title: "Scientific Method Basics", 
-          level: "Beginner", 
-          content: "The scientific method involves making observations, forming hypotheses, conducting experiments, and drawing conclusions. This systematic approach helps scientists investigate natural phenomena.",
-          lastUpdated: "2024-01-12"
-        }
-      ],
-      exercises: [
-        { 
-          id: 1, 
-          question: "List the steps of the scientific method in order.", 
-          type: "short-answer",
-          difficulty: "easy",
-          points: 5
-        }
-      ],
-      videos: [
-        { 
-          id: 1, 
-          title: "Scientific Method Explained", 
-          url: "https://placehold.co/400x225?text=Video:+Scientific+Method", 
-          duration: "7:15",
-          thumbnail: "https://placehold.co/400x225?text=Scientific+Method",
-          description: "Step-by-step guide to the scientific method"
-        }
-      ]
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
     }
-  ]);
-
-  const [assignments] = useState([
-    {
-      id: 1,
-      title: "Cell Structure Assignment",
-      description: "Draw and label a detailed diagram of an animal cell and a plant cell.",
-      dueDate: "2024-01-15",
-      unit: "Unit 2.1",
-      status: "pending",
-      points: 20
+    
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
     }
-  ]);
+    
+    .header h1 {
+      color: #2e7d32;
+      font-size: 3.5rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .header p {
+      font-size: 1.2rem;
+      color: #333;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      margin-top: 40px;
+    }
+    
+    .card {
+      width: 250px;
+      height: 300px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      border-top: 4px solid transparent;
+      cursor: pointer;
+    }
+    
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card:hover .card-body {
+      transform: scale(1.02);
+    }
+    
+    .card-icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100px;
+      margin-bottom: 15px;
+      border-bottom: 4px solid;
+    }
+    
+    .library-card .card-icon {
+      border-color: #2196f3;
+    }
+    
+    .exercises-card .card-icon {
+      border-color: #4caf50;
+    }
+    
+    .assignments-card .card-icon {
+      border-color: #9c27b0;
+    }
+    
+    .progress-card .card-icon {
+      border-color: #ff9800;
+    }
+    
+    .card-body {
+      padding: 20px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #333;
+    }
+    
+    .card-text {
+      font-size: 0.9rem;
+      color: #666;
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+    // Complete CWA Secondary Biology Website
+    const { useState, useEffect } = React;
 
-  const [quizzes] = useState([
-    {
-      id: 1,
-      title: "Quiz 1: Characteristics of Living Organisms",
-      unit: "Unit 1.1",
-      timeLimit: 15,
-      totalPoints: 15,
-      questions: [
-        { 
+    function App() {
+      const [currentPage, setCurrentPage] = useState("home");
+      const [currentLanguage, setCurrentLanguage] = useState("en");
+      const [isAuthenticated, setIsAuthenticated] = useState(false);
+      const [activeAdminTab, setActiveAdminTab] = useState("units");
+      const [navigationHistory, setNavigationHistory] = useState(["home"]);
+      const [user, setUser] = useState(null);
+      const [loginForm, setLoginForm] = useState({ username: "", password: "", role: "student" });
+      const [signupForm, setSignupForm] = useState({ 
+        name: "", 
+        email: "", 
+        username: "", 
+        password: "", 
+        confirmPassword: "", 
+        role: "student", 
+        class: "" 
+      });
+      const [signupStep, setSignupStep] = useState(1); // 1: form, 2: verification
+      const [verificationCode, setVerificationCode] = useState("");
+      const [isVerifying, setIsVerifying] = useState(false);
+
+      // Master admin configuration
+      const ADMIN_CONFIG = {
+        secretCode: "CWA2024BIO",
+        accessLevels: {
+          FULL_ACCESS: "full",
+          CONTENT_ONLY: "content",
+          VIEW_ONLY: "view"
+        }
+      };
+
+      // Initial content data
+      const [content, setContent] = useState([
+        {
+          unit: "Unit 1.1",
+          title: "Characteristics of Living Organisms",
+          articles: [
+            { 
+              id: 1, 
+              title: "Introduction to Biology", 
+              level: "Beginner", 
+              content: "All living organisms share certain characteristics that distinguish them from non-living things. These include nutrition, respiration, movement, excretion, growth, reproduction, and sensitivity.",
+              lastUpdated: "2024-01-15"
+            }
+          ],
+          exercises: [
+            { 
+              id: 1, 
+              question: "What are the seven characteristics of living organisms?", 
+              type: "short-answer",
+              difficulty: "easy",
+              points: 5
+            }
+          ],
+          videos: [
+            { 
+              id: 1, 
+              title: "Introduction to Cells", 
+              url: "https://placehold.co/400x225?text=Video:+Introduction+to+Cells", 
+              duration: "5:30",
+              thumbnail: "https://placehold.co/400x225?text=Cell+Video",
+              description: "Basic introduction to cell structure and function"
+            }
+          ]
+        },
+        {
+          unit: "Unit 1.2",
+          title: "Testing Predictions",
+          articles: [
+            { 
+              id: 1, 
+              title: "Scientific Method Basics", 
+              level: "Beginner", 
+              content: "The scientific method involves making observations, forming hypotheses, conducting experiments, and drawing conclusions. This systematic approach helps scientists investigate natural phenomena.",
+              lastUpdated: "2024-01-12"
+            }
+          ],
+          exercises: [
+            { 
+              id: 1, 
+              question: "List the steps of the scientific method in order.", 
+              type: "short-answer",
+              difficulty: "easy",
+              points: 5
+            }
+          ],
+          videos: [
+            { 
+              id: 1, 
+              title: "Scientific Method Explained", 
+              url: "https://placehold.co/400x225?text=Video:+Scientific+Method", 
+              duration: "7:15",
+              thumbnail: "https://placehold.co/400x225?text=Scientific+Method",
+              description: "Step-by-step guide to the scientific method"
+            }
+          ]
+        }
+      ]);
+
+      const [assignments] = useState([
+        {
           id: 1,
-          question: "Which of the following is NOT a characteristic of living organisms?", 
-          options: ["Nutrition", "Respiration", "Photosynthesis", "Excretion"], 
-          answer: 2,
-          points: 3,
-          explanation: "Photosynthesis is a process performed by plants and some bacteria, but not all living organisms."
+          title: "Cell Structure Assignment",
+          description: "Draw and label a detailed diagram of an animal cell and a plant cell.",
+          dueDate: "2024-01-15",
+          unit: "Unit 2.1",
+          status: "pending",
+          points: 20
         }
-      ],
-    }
-  ]);
+      ]);
 
-  // User management
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      username: "teacher1",
-      password: "password1",
-      role: "teacher",
-      name: "Teacher One",
-      email: "teacher1@example.com",
-      class: "Grade 7",
-      lastActive: "2024-01-15",
-      emailVerified: true,
-      verificationCode: "123456"
-    },
-    {
-      id: 2,
-      username: "student1",
-      password: "password1",
-      role: "student",
-      name: "Student One",
-      email: "student1@example.com",
-      class: "Grade 7",
-      lastActive: "2024-01-15",
-      progress: {
-        completedUnits: 2,
-        quizAverage: 85,
-        assignmentsCompleted: 2
-      },
-      emailVerified: true,
-      verificationCode: "123456"
-    }
-  ]);
+      const [quizzes] = useState([
+        {
+          id: 1,
+          title: "Quiz 1: Characteristics of Living Organisms",
+          unit: "Unit 1.1",
+          timeLimit: 15,
+          totalPoints: 15,
+          questions: [
+            { 
+              id: 1,
+              question: "Which of the following is NOT a characteristic of living organisms?", 
+              options: ["Nutrition", "Respiration", "Photosynthesis", "Excretion"], 
+              answer: 2,
+              points: 3,
+              explanation: "Photosynthesis is a process performed by plants and some bacteria, but not all living organisms."
+            }
+          ],
+        }
+      ]);
 
-  // Language translations
-  const translations = {
-    en: {
-      title: "CWA Secondary Biology",
-      home: "Home",
-      library: "Library",
-      exercises: "Exercises",
-      assignments: "Assignments",
-      progress: "Progress",
-      admin: "Admin",
-      welcome: "Welcome to CWA Secondary Biology",
-      adminAccess: "Admin Access",
-      enterCode: "Enter Admin Code:",
-      accessGranted: "Access Granted!",
-      invalidCode: "Invalid code. Please try again.",
-      logout: "Logout",
-      unitManagement: "Unit Management",
-      addUnit: "Add Unit",
-      editUnit: "Edit Unit",
-      deleteUnit: "Delete Unit",
-      unitCode: "Unit Code:",
-      unitTitle: "Unit Title:",
-      description: "Description:",
-      units: "Units",
-      content: "Content",
-      exercises: "Exercises",
-      videos: "Videos",
-      manageUnits: "Manage Units",
-      createUnit: "Create Unit",
-      confirmUnitDelete: "Are you sure you want to delete this unit? This will also remove all associated content, assignments, and quizzes.",
-      back: "Back",
-      home: "Home",
-      language: "Language",
-      english: "English",
-      chinese: "中文",
-      login: "Login",
-      register: "Register",
-      signup: "Sign Up",
-      username: "Username",
-      password: "Password",
-      confirmPassword: "Confirm Password",
-      email: "Email",
-      name: "Name",
-      class: "Class",
-      role: "Role",
-      student: "Student",
-      teacher: "Teacher",
-      loginToContinue: "Please login to continue",
-      myProgress: "My Progress",
-      completedUnits: "Completed Units:",
-      quizAverage: "Quiz Average:",
-      assignmentsCompleted: "Assignments Completed:",
-      lastActive: "Last Active:",
-      studentDashboard: "Student Dashboard",
-      teacherDashboard: "Teacher Dashboard",
-      manageStudents: "Manage Students",
-      createAssignment: "Create Assignment",
-      viewProgress: "View Progress",
-      welcomeBack: "Welcome back",
-      account: "Account",
-      profile: "Profile",
-      settings: "Settings",
-      next: "Next",
-      verifyEmail: "Verify Email",
-      verificationCode: "Verification Code",
-      resendCode: "Resend Code",
-      emailVerification: "Email Verification",
-      verificationSent: "A verification code has been sent to your email. Please check your inbox.",
-      verify: "Verify",
-      emailSent: "Verification email sent!",
-      codeSent: "A 6-digit code has been sent to",
-      pleaseCheck: "Please check your email and enter the code below.",
-      invalidEmail: "Please enter a valid email address",
-      usernameExists: "This username is already taken",
-      emailExists: "An account with this email already exists",
-      passwordsDontMatch: "Passwords don't match",
-      passwordTooShort: "Password must be at least 6 characters",
-      fieldRequired: "This field is required",
-      verificationFailed: "Verification failed. Please try again.",
-      accountCreated: "Account created successfully! You can now login.",
-      verificationSuccess: "Email verified successfully!",
-      resendSuccess: "Verification code resent!",
-      resendError: "Error resending code. Please try again.",
-      signupAsStudent: "Sign up as Student",
-      signupAsTeacher: "Sign up as Teacher",
-      studentClass: "Your Class",
-      teacherClass: "Your Class/Grade",
-      createAccount: "Create Account",
-      continue: "Continue",
-      verificationInProgress: "Verifying...",
-      signupSuccess: "Registration Complete!",
-      signupSuccessDesc: "Your account has been created. Please verify your email to login."
-    },
-    zh: {
-      title: "CWA中学生物学",
-      home: "首页",
-      library: "资料库",
-      exercises: "练习",
-      assignments: "作业",
-      progress: "进度",
-      admin: "管理员",
-      welcome: "欢迎来到CWA中学生物学",
-      adminAccess: "管理员访问",
-      enterCode: "输入管理员代码：",
-      accessGranted: "访问已授权！",
-      invalidCode: "代码无效。请重试。",
-      logout: "登出",
-      unitManagement: "单元管理",
-      addUnit: "添加单元",
-      editUnit: "编辑单元",
-      deleteUnit: "删除单元",
-      unitCode: "单元代码：",
-      unitTitle: "单元标题：",
-      description: "描述：",
-      units: "单元",
-      content: "内容",
-      exercises: "练习",
-      videos: "视频",
-      manageUnits: "管理单元",
-      createUnit: "创建单元",
-      confirmUnitDelete: "您确定要删除此单元吗？这将同时删除所有相关的内容、作业和测验。",
-      back: "返回",
-      home: "首页",
-      language: "语言",
-      english: "英文",
-      chinese: "中文",
-      login: "登录",
-      register: "注册",
-      signup: "注册",
-      username: "用户名",
-      password: "密码",
-      confirmPassword: "确认密码",
-      email: "邮箱",
-      name: "姓名",
-      class: "班级",
-      role: "角色",
-      student: "学生",
-      teacher: "教师",
-      loginToContinue: "请登录以继续",
-      myProgress: "我的进度",
-      completedUnits: "完成单元：",
-      quizAverage: "测验平均分：",
-      assignmentsCompleted: "完成作业：",
-      lastActive: "最后活动：",
-      studentDashboard: "学生仪表板",
-      teacherDashboard: "教师仪表板",
-      manageStudents: "管理学生",
-      createAssignment: "创建作业",
-      viewProgress: "查看进度",
-      welcomeBack: "欢迎回来",
-      account: "账户",
-      profile: "个人资料",
-      settings: "设置",
-      next: "下一步",
-      verifyEmail: "验证邮箱",
-      verificationCode: "验证码",
-      resendCode: "重新发送",
-      emailVerification: "邮箱验证",
-      verificationSent: "验证码已发送到您的邮箱。请查收。",
-      verify: "验证",
-      emailSent: "验证邮件已发送！",
-      codeSent: "6位验证码已发送至",
-      pleaseCheck: "请查收邮件并输入下方验证码。",
-      invalidEmail: "请输入有效的邮箱地址",
-      usernameExists: "该用户名已被占用",
-      emailExists: "该邮箱已注册过账户",
-      passwordsDontMatch: "密码不匹配",
-      passwordTooShort: "密码至少需要6个字符",
-      fieldRequired: "此字段为必填项",
-      verificationFailed: "验证失败，请重试。",
-      accountCreated: "账户创建成功！现在可以登录。",
-      verificationSuccess: "邮箱验证成功！",
-      resendSuccess: "验证码已重新发送！",
-      resendError: "重新发送验证码出错，请重试。",
-      signupAsStudent: "学生注册",
-      signupAsTeacher: "教师注册",
-      studentClass: "您的班级",
-      teacherClass: "您的班级/年级",
-      createAccount: "创建账户",
-      continue: "继续",
-      verificationInProgress: "正在验证...",
-      signupSuccess: "注册完成！",
-      signupSuccessDesc: "您的账户已创建。请验证邮箱后登录。"
-    }
-  };
+      // User management
+      const [users, setUsers] = useState([
+        {
+          id: 1,
+          username: "teacher1",
+          password: "password1",
+          role: "teacher",
+          name: "Teacher One",
+          email: "teacher1@example.com",
+          class: "Grade 7",
+          lastActive: "2024-01-15",
+          emailVerified: true,
+          verificationCode: "123456"
+        },
+        {
+          id: 2,
+          username: "student1",
+          password: "password1",
+          role: "student",
+          name: "Student One",
+          email: "student1@example.com",
+          class: "Grade 7",
+          lastActive: "2024-01-15",
+          progress: {
+            completedUnits: 2,
+            quizAverage: 85,
+            assignmentsCompleted: 2
+          },
+          emailVerified: true,
+          verificationCode: "123456"
+        }
+      ]);
 
-  const t = translations[currentLanguage];
+      // Language translations
+      const translations = {
+        en: {
+          title: "CWA Secondary Biology",
+          home: "Home",
+          library: "Library",
+          exercises: "Exercises",
+          assignments: "Assignments",
+          progress: "Progress",
+          admin: "Admin",
+          welcome: "Welcome to CWA Secondary Biology",
+          adminAccess: "Admin Access",
+          enterCode: "Enter Admin Code:",
+          accessGranted: "Access Granted!",
+          invalidCode: "Invalid code. Please try again.",
+          logout: "Logout",
+          unitManagement: "Unit Management",
+          addUnit: "Add Unit",
+          editUnit: "Edit Unit",
+          deleteUnit: "Delete Unit",
+          unitCode: "Unit Code:",
+          unitTitle: "Unit Title:",
+          description: "Description:",
+          units: "Units",
+          content: "Content",
+          exercises: "Exercises",
+          videos: "Videos",
+          manageUnits: "Manage Units",
+          createUnit: "Create Unit",
+          confirmUnitDelete: "Are you sure you want to delete this unit? This will also remove all associated content, assignments, and quizzes.",
+          back: "Back",
+          home: "Home",
+          language: "Language",
+          english: "English",
+          chinese: "中文",
+          login: "Login",
+          register: "Register",
+          signup: "Sign Up",
+          username: "Username",
+          password: "Password",
+          confirmPassword: "Confirm Password",
+          email: "Email",
+          name: "Name",
+          class: "Class",
+          role: "Role",
+          student: "Student",
+          teacher: "Teacher",
+          loginToContinue: "Please login to continue",
+          myProgress: "My Progress",
+          completedUnits: "Completed Units:",
+          quizAverage: "Quiz Average:",
+          assignmentsCompleted: "Assignments Completed:",
+          lastActive: "Last Active:",
+          studentDashboard: "Student Dashboard",
+          teacherDashboard: "Teacher Dashboard",
+          manageStudents: "Manage Students",
+          createAssignment: "Create Assignment",
+          viewProgress: "View Progress",
+          welcomeBack: "Welcome back",
+          account: "Account",
+          profile: "Profile",
+          settings: "Settings",
+          next: "Next",
+          verifyEmail: "Verify Email",
+          verificationCode: "Verification Code",
+          resendCode: "Resend Code",
+          emailVerification: "Email Verification",
+          verificationSent: "A verification code has been sent to your email. Please check your inbox.",
+          verify: "Verify",
+          emailSent: "Verification email sent!",
+          codeSent: "A 6-digit code has been sent to",
+          pleaseCheck: "Please check your email and enter the code below.",
+          invalidEmail: "Please enter a valid email address",
+          usernameExists: "This username is already taken",
+          emailExists: "An account with this email already exists",
+          passwordsDontMatch: "Passwords don't match",
+          passwordTooShort: "Password must be at least 6 characters",
+          fieldRequired: "This field is required",
+          verificationFailed: "Verification failed. Please try again.",
+          accountCreated: "Account created successfully! You can now login.",
+          verificationSuccess: "Email verified successfully!",
+          resendSuccess: "Verification code resent!",
+          resendError: "Error resending code. Please try again.",
+          signupAsStudent: "Sign up as Student",
+          signupAsTeacher: "Sign up as Teacher",
+          studentClass: "Your Class",
+          teacherClass: "Your Class/Grade",
+          createAccount: "Create Account",
+          continue: "Continue",
+          verificationInProgress: "Verifying...",
+          signupSuccess: "Registration Complete!",
+          signupSuccessDesc: "Your account has been created. Please verify your email to login."
+        },
+        zh: {
+          title: "CWA中学生物学",
+          home: "首页",
+          library: "资料库",
+          exercises: "练习",
+          assignments: "作业",
+          progress: "进度",
+          admin: "管理员",
+          welcome: "欢迎来到CWA中学生物学",
+          adminAccess: "管理员访问",
+          enterCode: "输入管理员代码：",
+          accessGranted: "访问已授权！",
+          invalidCode: "代码无效。请重试。",
+          logout: "登出",
+          unitManagement: "单元管理",
+          addUnit: "添加单元",
+          editUnit: "编辑单元",
+          deleteUnit: "删除单元",
+          unitCode: "单元代码：",
+          unitTitle: "单元标题：",
+          description: "描述：",
+          units: "单元",
+          content: "内容",
+          exercises: "练习",
+          videos: "视频",
+          manageUnits: "管理单元",
+          createUnit: "创建单元",
+          confirmUnitDelete: "您确定要删除此单元吗？这将同时删除所有相关的内容、作业和测验。",
+          back: "返回",
+          home: "首页",
+          language: "语言",
+          english: "英文",
+          chinese: "中文",
+          login: "登录",
+          register: "注册",
+          signup: "注册",
+          username: "用户名",
+          password: "密码",
+          confirmPassword: "确认密码",
+          email: "邮箱",
+          name: "姓名",
+          class: "班级",
+          role: "角色",
+          student: "学生",
+          teacher: "教师",
+          loginToContinue: "请登录以继续",
+          myProgress: "我的进度",
+          completedUnits: "完成单元：",
+          quizAverage: "测验平均分：",
+          assignmentsCompleted: "完成作业：",
+          lastActive: "最后活动：",
+          studentDashboard: "学生仪表板",
+          teacherDashboard: "教师仪表板",
+          manageStudents: "管理学生",
+          createAssignment: "创建作业",
+          viewProgress: "查看进度",
+          welcomeBack: "欢迎回来",
+          account: "账户",
+          profile: "个人资料",
+          settings: "设置",
+          next: "下一步",
+          verifyEmail: "验证邮箱",
+          verificationCode: "验证码",
+          resendCode: "重新发送",
+          emailVerification: "邮箱验证",
+          verificationSent: "验证码已发送到您的邮箱。请查收。",
+          verify: "验证",
+          emailSent: "验证邮件已发送！",
+          codeSent: "6位验证码已发送至",
+          pleaseCheck: "请查收邮件并输入下方验证码。",
+          invalidEmail: "请输入有效的邮箱地址",
+          usernameExists: "该用户名已被占用",
+          emailExists: "该邮箱已注册过账户",
+          passwordsDontMatch: "密码不匹配",
+          passwordTooShort: "密码至少需要6个字符",
+          fieldRequired: "此字段为必填项",
+          verificationFailed: "验证失败，请重试。",
+          accountCreated: "账户创建成功！现在可以登录。",
+          verificationSuccess: "邮箱验证成功！",
+          resendSuccess: "验证码已重新发送！",
+          resendError: "重新发送验证码出错，请重试。",
+          signupAsStudent: "学生注册",
+          signupAsTeacher: "教师注册",
+          studentClass: "您的班级",
+          teacherClass: "您的班级/年级",
+          createAccount: "创建账户",
+          continue: "继续",
+          verificationInProgress: "正在验证...",
+          signupSuccess: "注册完成！",
+          signupSuccessDesc: "您的账户已创建。请验证邮箱后登录。"
+        }
+      };
 
-  // Generate admin link
-  const adminLink = `${window.location.origin}${window.location.pathname}?admin=${ADMIN_CONFIG.secretCode}`;
+      const t = translations[currentLanguage];
 
-  // Verify admin code
-  const verifyAdminCode = (code) => {
-    if (code === ADMIN_CONFIG.secretCode) {
-      setIsAuthenticated(true);
-      setCurrentPage("admin");
-      setNavigationHistory(prev => [...prev, "admin"]);
-      return true;
-    }
-    return false;
-  };
+      // Generate admin link
+      const adminLink = `${window.location.origin}${window.location.pathname}?admin=${ADMIN_CONFIG.secretCode}`;
 
-  // User login
-  const handleLogin = (e) => {
-    e.preventDefault();
-    const foundUser = users.find(u => u.username === loginForm.username && u.password === loginForm.password);
-    
-    if (foundUser) {
-      if (!foundUser.emailVerified) {
-        alert("Please verify your email before logging in.");
-        return;
-      }
-      setUser(foundUser);
-      setCurrentPage("home");
-      setNavigationHistory(["home"]);
-      setLoginForm({ username: "", password: "", role: "student" });
-    } else {
-      alert("Invalid username or password");
-    }
-  };
+      // Verify admin code
+      const verifyAdminCode = (code) => {
+        if (code === ADMIN_CONFIG.secretCode) {
+          setIsAuthenticated(true);
+          setCurrentPage("admin");
+          setNavigationHistory(prev => [...prev, "admin"]);
+          return true;
+        }
+        return false;
+      };
 
-  // User logout
-  const handleLogout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    setCurrentPage("home");
-    setNavigationHistory(["home"]);
-    window.history.pushState({}, document.title, window.location.pathname);
-  };
-
-  // Navigation with history tracking
-  const navigateTo = (page) => {
-    if (page !== "login" && page !== "signup" && !user && !isAuthenticated) {
-      setCurrentPage("login");
-      setNavigationHistory(prev => [...prev, "login"]);
-      return;
-    }
-    
-    setCurrentPage(page);
-    setNavigationHistory(prev => [...prev, page]);
-  };
-
-  // Go back function
-  const goBack = () => {
-    if (navigationHistory.length > 1) {
-      const newHistory = navigationHistory.slice(0, -1);
-      setNavigationHistory(newHistory);
-      setCurrentPage(newHistory[newHistory.length - 1]);
-    }
-  };
-
-  // Go home function
-  const goHome = () => {
-    setCurrentPage("home");
-    setNavigationHistory(["home"]);
-  };
-
-  // Admin tab navigation
-  const navigateToAdminTab = (tab) => {
-    setActiveAdminTab(tab);
-  };
-
-  // Unit Management Functions
-  const [unitForm, setUnitForm] = useState({
-    unit: "",
-    title: "",
-    description: ""
-  });
-
-  const handleUnitChange = (field, value) => {
-    setUnitForm({ ...unitForm, [field]: value });
-  };
-
-  const saveUnit = () => {
-    if (!unitForm.unit || !unitForm.title) {
-      alert("Please fill in unit code and title");
-      return;
-    }
-
-    // Check if unit code already exists
-    const unitExists = content.some(c => c.unit === unitForm.unit);
-    if (unitExists) {
-      alert("A unit with this code already exists. Please use a different code.");
-      return;
-    }
-
-    const newUnit = { 
-      unit: unitForm.unit,
-      title: unitForm.title,
-      description: unitForm.description || "",
-      articles: [],
-      exercises: [],
-      videos: []
-    };
-    
-    setContent(prev => [...prev, newUnit]);
-
-    setUnitForm({
-      unit: "",
-      title: "",
-      description: ""
-    });
-    alert("Unit created successfully!");
-  };
-
-  // Delete unit
-  const deleteUnit = (unitId) => {
-    if (window.confirm("Are you sure you want to delete this unit? This will also remove all associated content, assignments, and quizzes.")) {
-      // Remove unit from content
-      setContent(prev => prev.filter(u => u.unit !== unitId));
-      alert("Unit deleted successfully!");
-    }
-  };
-
-  // Check for admin access on load
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get('admin');
-    if (code === ADMIN_CONFIG.secretCode) {
-      setIsAuthenticated(true);
-      setCurrentPage("admin");
-      setNavigationHistory(["home", "admin"]);
-    }
-  }, []);
-
-  // Header Component with Navigation
-  const Header = () => (
-    <div style={{
-      background: "white",
-      padding: "15px 20px",
-      borderBottom: "1px solid #e0e0e0",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      position: "sticky",
-      top: 0,
-      zIndex: 100,
-      boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)"
-    }}>
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "15px"
-      }}>
-        {/* Back and Home buttons */}
-        {navigationHistory.length > 1 && (
-          <button 
-            onClick={goBack}
-            style={{
-              background: "#e0e0e0",
-              border: "none",
-              padding: "8px 12px",
-              borderRadius: "8px",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "5px"
-            }}
-          >
-            ← {t.back}
-          </button>
-        )}
+      // User login
+      const handleLogin = (e) => {
+        e.preventDefault();
+        const foundUser = users.find(u => u.username === loginForm.username && u.password === loginForm.password);
         
-        {currentPage !== "home" && (
-          <button 
-            onClick={goHome}
-            style={{
-              background: "#4caf50",
-              color: "white",
-              border: "none",
-              padding: "8px 12px",
-              borderRadius: "8px",
-              fontSize: "14px",
-              fontWeight: "500",
-              cursor: "pointer",
+        if (foundUser) {
+          if (!foundUser.emailVerified) {
+            alert("Please verify your email before logging in.");
+            return;
+          }
+          setUser(foundUser);
+          setCurrentPage("home");
+          setNavigationHistory(["home"]);
+          setLoginForm({ username: "", password: "", role: "student" });
+        } else {
+          alert("Invalid username or password");
+        }
+      };
+
+      // User logout
+      const handleLogout = () => {
+        setUser(null);
+        setIsAuthenticated(false);
+        setCurrentPage("home");
+        setNavigationHistory(["home"]);
+        window.history.pushState({}, document.title, window.location.pathname);
+      };
+
+      // Navigation with history tracking
+      const navigateTo = (page) => {
+        if (page !== "login" && page !== "signup" && !user && !isAuthenticated) {
+          setCurrentPage("login");
+          setNavigationHistory(prev => [...prev, "login"]);
+          return;
+        }
+        
+        setCurrentPage(page);
+        setNavigationHistory(prev => [...prev, page]);
+      };
+
+      // Go back function
+      const goBack = () => {
+        if (navigationHistory.length > 1) {
+          const newHistory = navigationHistory.slice(0, -1);
+          setNavigationHistory(newHistory);
+          setCurrentPage(newHistory[newHistory.length - 1]);
+        }
+      };
+
+      // Go home function
+      const goHome = () => {
+        setCurrentPage("home");
+        setNavigationHistory(["home"]);
+      };
+
+      // Admin tab navigation
+      const navigateToAdminTab = (tab) => {
+        setActiveAdminTab(tab);
+      };
+
+      // Unit Management Functions
+      const [unitForm, setUnitForm] = useState({
+        unit: "",
+        title: "",
+        description: ""
+      });
+
+      const handleUnitChange = (field, value) => {
+        setUnitForm({ ...unitForm, [field]: value });
+      };
+
+      const saveUnit = () => {
+        if (!unitForm.unit || !unitForm.title) {
+          alert("Please fill in unit code and title");
+          return;
+        }
+
+        // Check if unit code already exists
+        const unitExists = content.some(c => c.unit === unitForm.unit);
+        if (unitExists) {
+          alert("A unit with this code already exists. Please use a different code.");
+          return;
+        }
+
+        const newUnit = { 
+          unit: unitForm.unit,
+          title: unitForm.title,
+          description: unitForm.description || "",
+          articles: [],
+          exercises: [],
+          videos: []
+        };
+        
+        setContent(prev => [...prev, newUnit]);
+
+        setUnitForm({
+          unit: "",
+          title: "",
+          description: ""
+        });
+        alert("Unit created successfully!");
+      };
+
+      // Delete unit
+      const deleteUnit = (unitId) => {
+        if (window.confirm("Are you sure you want to delete this unit? This will also remove all associated content, assignments, and quizzes.")) {
+          // Remove unit from content
+          setContent(prev => prev.filter(u => u.unit !== unitId));
+          alert("Unit deleted successfully!");
+        }
+      };
+
+      // Check for admin access on load
+      useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('admin');
+        if (code === ADMIN_CONFIG.secretCode) {
+          setIsAuthenticated(true);
+          setCurrentPage("admin");
+          setNavigationHistory(["home", "admin"]);
+        }
+      }, []);
+
+      // Header Component with Navigation
+      const Header = () => (
+        <div style={{
+          background: "white",
+          padding: "15px 20px",
+          borderBottom: "1px solid #e0e0e0",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          position: "sticky",
+          top: 0,
+          zIndex: 100,
+          boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)"
+        }}>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "15px"
+          }}>
+            {/* Back and Home buttons */}
+            {navigationHistory.length > 1 && (
+              <button 
+                onClick={goBack}
+                style={{
+                  background: "#e0e0e0",
+                  border: "none",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px"
+                }}
+              >
+                ← {t.back}
+              </button>
+            )}
+            
+            {currentPage !== "home" && (
+              <button 
+                onClick={goHome}
+                style={{
+                  background: "#4caf50",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px"
+                }}
+              >
+                🏠 {t.home}
+              </button>
+            )}
+          </div>
+
+          <h1 style={{
+            fontSize: "20px",
+            fontWeight: "700",
+            color: "#2e7d32",
+            margin: "0",
+            textAlign: "center",
+            flex: 1
+          }}>
+            {t.title}
+          </h1>
+
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "15px"
+          }}>
+            {/* User Account or Login */}
+            {user ? (
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px"
+              }}>
+                <span style={{
+                  fontSize: "14px",
+                  color: "#666"
+                }}>
+                  {t.welcomeBack}, {user.name}
+                </span>
+                <button 
+                  onClick={handleLogout}
+                  style={{
+                    background: "#f44336",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    cursor: "pointer"
+                  }}
+                >
+                  {t.logout}
+                </button>
+              </div>
+            ) : !isAuthenticated && (
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px"
+              }}>
+                <button 
+                  onClick={() => navigateTo("login")}
+                  style={{
+                    background: "#2196f3",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    cursor: "pointer"
+                  }}
+                >
+                  {t.login}
+                </button>
+                <button 
+                  onClick={() => navigateTo("signup")}
+                  style={{
+                    background: "#4caf50",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    cursor: "pointer"
+                  }}
+                >
+                  {t.signup}
+                </button>
+              </div>
+            )}
+
+            {/* Language Toggle */}
+            <div style={{
               display: "flex",
               alignItems: "center",
-              gap: "5px"
-            }}
-          >
-            🏠 {t.home}
-          </button>
-        )}
-      </div>
-
-      <h1 style={{
-        fontSize: "20px",
-        fontWeight: "700",
-        color: "#2e7d32",
-        margin: "0",
-        textAlign: "center",
-        flex: 1
-      }}>
-        {t.title}
-      </h1>
-
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "15px"
-      }}>
-        {/* User Account or Login */}
-        {user ? (
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px"
-          }}>
-            <span style={{
+              gap: "10px",
               fontSize: "14px",
-              color: "#666"
+              fontWeight: "500"
             }}>
-              {t.welcomeBack}, {user.name}
-            </span>
-            <button 
-              onClick={handleLogout}
-              style={{
-                background: "#f44336",
-                color: "white",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "6px",
-                fontSize: "14px",
-                cursor: "pointer"
-              }}
-            >
-              {t.logout}
-            </button>
+              <span style={{
+                opacity: currentLanguage === "en" ? 1 : 0.6,
+                cursor: "pointer",
+                color: currentLanguage === "en" ? "#4caf50" : "#666"
+              }} onClick={() => setCurrentLanguage("en")}>
+                {t.english}
+              </span>
+              <span style={{color: "#999"}}>|</span>
+              <span style={{
+                opacity: currentLanguage === "zh" ? 1 : 0.6,
+                cursor: "pointer",
+                color: currentLanguage === "zh" ? "#4caf50" : "#666"
+              }} onClick={() => setCurrentLanguage("zh")}>
+                {t.chinese}
+              </span>
+            </div>
           </div>
-        ) : !isAuthenticated && (
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px"
-          }}>
-            <button 
-              onClick={() => navigateTo("login")}
-              style={{
-                background: "#2196f3",
-                color: "white",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "6px",
-                fontSize: "14px",
-                cursor: "pointer"
-              }}
-            >
-              {t.login}
-            </button>
-            <button 
-              onClick={() => navigateTo("signup")}
-              style={{
-                background: "#4caf50",
-                color: "white",
-                border: "none",
-                padding: "6px 12px",
-                borderRadius: "6px",
-                fontSize: "14px",
-                cursor: "pointer"
-              }}
-            >
-              {t.signup}
-            </button>
-          </div>
-        )}
+        </div>
+      );
 
-        {/* Language Toggle */}
+      // Login Page
+      const LoginPage = () => (
         <div style={{
           display: "flex",
           alignItems: "center",
-          gap: "10px",
-          fontSize: "14px",
-          fontWeight: "500"
-        }}>
-          <span style={{
-            opacity: currentLanguage === "en" ? 1 : 0.6,
-            cursor: "pointer",
-            color: currentLanguage === "en" ? "#4caf50" : "#666"
-          }} onClick={() => setCurrentLanguage("en")}>
-            {t.english}
-          </span>
-          <span style={{color: "#999"}}>|</span>
-          <span style={{
-            opacity: currentLanguage === "zh" ? 1 : 0.6,
-            cursor: "pointer",
-            color: currentLanguage === "zh" ? "#4caf50" : "#666"
-          }} onClick={() => setCurrentLanguage("zh")}>
-            {t.chinese}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Login Page
-  const LoginPage = () => (
-    <div style={{
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      minHeight: "100vh",
-      background: "#e8f5e8",
-      padding: "20px"
-    }}>
-      <div style={{
-        background: "white",
-        borderRadius: "12px",
-        padding: "40px",
-        width: "100%",
-        maxWidth: "400px",
-        boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
-      }}>
-        <div style={{
-          textAlign: "center",
-          marginBottom: "30px"
+          justifyContent: "center",
+          minHeight: "100vh",
+          background: "#e8f5e8",
+          padding: "20px"
         }}>
           <div style={{
-            fontSize: "60px",
-            marginBottom: "20px"
+            background: "white",
+            borderRadius: "12px",
+            padding: "40px",
+            width: "100%",
+            maxWidth: "400px",
+            boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
           }}>
-            👤
-          </div>
-          <h2 style={{
-            fontSize: "28px",
-            fontWeight: "700",
-            color: "#333",
-            margin: "0"
-          }}>
-            {t.login}
-          </h2>
-          <p style={{
-            color: "#666",
-            marginTop: "10px"
-          }}>
-            {t.loginToContinue}
-          </p>
-        </div>
-        
-        <form onSubmit={handleLogin} style={{
-          spaceY: "20px"
-        }}>
-          <div style={{
-            marginBottom: "20px"
-          }}>
-            <label style={{
-              display: "block",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "#333",
-              marginBottom: "8px"
+            <div style={{
+              textAlign: "center",
+              marginBottom: "30px"
             }}>
-              {t.username}
-            </label>
-            <input
-              type="text"
-              value={loginForm.username}
-              onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
-              style={{
-                width: "100%",
-                border: "2px solid #ddd",
-                borderRadius: "8px",
-                padding: "12px",
-                fontSize: "16px",
-                outline: "none"
-              }}
-              placeholder="Enter username"
-              required
-            />
-          </div>
-          
-          <div style={{
-            marginBottom: "20px"
-          }}>
-            <label style={{
-              display: "block",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "#333",
-              marginBottom: "8px"
+              <div style={{
+                fontSize: "60px",
+                marginBottom: "20px"
+              }}>
+                👤
+              </div>
+              <h2 style={{
+                fontSize: "28px",
+                fontWeight: "700",
+                color: "#333",
+                margin: "0"
+              }}>
+                {t.login}
+              </h2>
+              <p style={{
+                color: "#666",
+                marginTop: "10px"
+              }}>
+                {t.loginToContinue}
+              </p>
+            </div>
+            
+            <form onSubmit={handleLogin} style={{
+              spaceY: "20px"
             }}>
-              {t.password}
-            </label>
-            <input
-              type="password"
-              value={loginForm.password}
-              onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-              style={{
-                width: "100%",
-                border: "2px solid #ddd",
-                borderRadius: "8px",
-                padding: "12px",
-                fontSize: "16px",
-                outline: "none"
-              }}
-              placeholder="Enter password"
-              required
-            />
-          </div>
-          
-          <div style={{
-            marginBottom: "20px"
-          }}>
-            <label style={{
-              display: "block",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "#333",
-              marginBottom: "8px"
+              <div style={{
+                marginBottom: "20px"
+              }}>
+                <label style={{
+                  display: "block",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  color: "#333",
+                  marginBottom: "8px"
+                }}>
+                  {t.username}
+                </label>
+                <input
+                  type="text"
+                  value={loginForm.username}
+                  onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
+                  style={{
+                    width: "100%",
+                    border: "2px solid #ddd",
+                    borderRadius: "8px",
+                    padding: "12px",
+                    fontSize: "16px",
+                    outline: "none"
+                  }}
+                  placeholder="Enter username"
+                  required
+                />
+              </div>
+              
+              <div style={{
+                marginBottom: "20px"
+              }}>
+                <label style={{
+                  display: "block",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  color: "#333",
+                  marginBottom: "8px"
+                }}>
+                  {t.password}
+                </label>
+                <input
+                  type="password"
+                  value={loginForm.password}
+                  onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                  style={{
+                    width: "100%",
+                    border: "2px solid #ddd",
+                    borderRadius: "8px",
+                    padding: "12px",
+                    fontSize: "16px",
+                    outline: "none"
+                  }}
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+              
+              <div style={{
+                marginBottom: "20px"
+              }}>
+                <label style={{
+                  display: "block",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  color: "#333",
+                  marginBottom: "8px"
+                }}>
+                  {t.role}
+                </label>
+                <select
+                  value={loginForm.role}
+                  onChange={(e) => setLoginForm({...loginForm, role: e.target.value})}
+                  style={{
+                    width: "100%",
+                    border: "2px solid #ddd",
+                    borderRadius: "8px",
+                    padding: "12px",
+                    fontSize: "16px",
+                    outline: "none"
+                  }}
+                >
+                  <option value="student">{t.student}</option>
+                  <option value="teacher">{t.teacher}</option>
+                </select>
+              </div>
+              
+              <button
+                type="submit"
+                style={{
+                  width: "100%",
+                  background: "linear-gradient(135deg, #4caf50, #66bb6a)",
+                  color: "white",
+                  border: "none",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  fontWeight: "600",
+                  cursor: "pointer"
+                }}
+              >
+                {t.login}
+              </button>
+            </form>
+            
+            <div style={{
+              textAlign: "center",
+              marginTop: "20px"
             }}>
-              {t.role}
-            </label>
-            <select
-              value={loginForm.role}
-              onChange={(e) => setLoginForm({...loginForm, role: e.target.value})}
-              style={{
-                width: "100%",
-                border: "2px solid #ddd",
-                borderRadius: "8px",
-                padding: "12px",
-                fontSize: "16px",
-                outline: "none"
-              }}
-            >
-              <option value="student">{t.student}</option>
-              <option value="teacher">{t.teacher}</option>
-            </select>
+              <p style={{
+                color: "#666",
+                fontSize: "14px"
+              }}>
+                {t.dontHaveAccount}{" "}
+                <button 
+                  onClick={() => navigateTo("signup")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#2196f3",
+                    fontWeight: "500",
+                    cursor: "pointer"
+                  }}
+                >
+                  {t.signup}
+                </button>
+              </p>
+            </div>
           </div>
-          
-          <button
-            type="submit"
-            style={{
-              width: "100%",
-              background: "linear-gradient(135deg, #4caf50, #66bb6a)",
-              color: "white",
-              border: "none",
-              padding: "12px",
-              borderRadius: "8px",
-              fontSize: "16px",
-              fontWeight: "600",
-              cursor: "pointer"
-            }}
-          >
-            {t.login}
-          </button>
-        </form>
-        
-        <div style={{
-          textAlign: "center",
-          marginTop: "20px"
-        }}>
-          <p style={{
-            color: "#666",
-            fontSize: "14px"
-          }}>
-            {t.dontHaveAccount}{" "}
-            <button 
-              onClick={() => navigateTo("signup")}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#2196f3",
-                fontWeight: "500",
-                cursor: "pointer"
-              }}
-            >
-              {t.signup}
-            </button>
-          </p>
         </div>
-      </div>
-    </div>
-  );
+      );
 
-  // Signup Page
-  const SignupPage = () => {
-    const [errors, setErrors] = useState({});
-    const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+      // Signup Page
+      const SignupPage = () => {
+        const [errors, setErrors] = useState({});
+        const [showPassword, setShowPassword] = useState(false);
+        const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    const validateForm = () => {
-      const newErrors = {};
-      
-      if (!signupForm.name.trim()) {
-        newErrors.name = t.fieldRequired;
-      }
-      
-      if (!signupForm.email.trim()) {
-        newErrors.email = t.fieldRequired;
-      } else if (!/\S+@\S+\.\S+/.test(signupForm.email)) {
-        newErrors.email = t.invalidEmail;
-      } else if (users.some(u => u.email === signupForm.email)) {
-        newErrors.email = t.emailExists;
-      }
-      
-      if (!signupForm.username.trim()) {
-        newErrors.username = t.fieldRequired;
-      } else if (users.some(u => u.username === signupForm.username)) {
-        newErrors.username = t.usernameExists;
-      }
-      
-      if (!signupForm.password) {
-        newErrors.password = t.fieldRequired;
-      } else if (signupForm.password.length < 6) {
-        newErrors.password = t.passwordTooShort;
-      }
-      
-      if (!signupForm.confirmPassword) {
-        newErrors.confirmPassword = t.fieldRequired;
-      } else if (signupForm.password !== signupForm.confirmPassword) {
-        newErrors.confirmPassword = t.passwordsDontMatch;
-      }
-      
-      if (!signupForm.class.trim()) {
-        newErrors.class = t.fieldRequired;
-      }
-      
-      setErrors(newErrors);
-      return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSignup = (e) => {
-      e.preventDefault();
-      if (validateForm()) {
-        setSignupStep(2);
-        
-        // Generate verification code (in a real app, this would be sent via email)
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        // Create new user
-        const newUser = {
-          id: users.length + 1,
-          ...signupForm,
-          lastActive: new Date().toISOString().split('T')[0],
-          emailVerified: false,
-          verificationCode: code,
-          progress: signupForm.role === "student" ? {
-            completedUnits: 0,
-            quizAverage: 0,
-            assignmentsCompleted: 0
-          } : undefined
+        const validateForm = () => {
+          const newErrors = {};
+          
+          if (!signupForm.name.trim()) {
+            newErrors.name = t.fieldRequired;
+          }
+          
+          if (!signupForm.email.trim()) {
+            newErrors.email = t.fieldRequired;
+          } else if (!/\S+@\S+\.\S+/.test(signupForm.email)) {
+            newErrors.email = t.invalidEmail;
+          } else if (users.some(u => u.email === signupForm.email)) {
+            newErrors.email = t.emailExists;
+          }
+          
+          if (!signupForm.username.trim()) {
+            newErrors.username = t.fieldRequired;
+          } else if (users.some(u => u.username === signupForm.username)) {
+            newErrors.username = t.usernameExists;
+          }
+          
+          if (!signupForm.password) {
+            newErrors.password = t.fieldRequired;
+          } else if (signupForm.password.length < 6) {
+            newErrors.password = t.passwordTooShort;
+          }
+          
+          if (!signupForm.confirmPassword) {
+            newErrors.confirmPassword = t.fieldRequired;
+          } else if (signupForm.password !== signupForm.confirmPassword) {
+            newErrors.confirmPassword = t.passwordsDontMatch;
+          }
+          
+          if (!signupForm.class.trim()) {
+            newErrors.class = t.fieldRequired;
+          }
+          
+          setErrors(newErrors);
+          return Object.keys(newErrors).length === 0;
         };
-        
-        setUsers(prev => [...prev, newUser]);
-        alert(`${t.emailSent}\n\n${t.codeSent} ${signupForm.email}\n\n${t.pleaseCheck}`);
-      }
-    };
 
-    const handleVerification = (e) => {
-      e.preventDefault();
-      setIsVerifying(true);
-      
-      // Find user by email
-      const userToVerify = users.find(u => u.email === signupForm.email);
-      
-      if (userToVerify && userToVerify.verificationCode === verificationCode) {
-        // Update user to verified
-        setUsers(prev => prev.map(u => 
-          u.email === signupForm.email 
-            ? { ...u, emailVerified: true } 
-            : u
-        ));
-        
-        setTimeout(() => {
-          setIsVerifying(false);
-          alert(t.verificationSuccess);
-          setCurrentPage("login");
-          setSignupStep(1);
-          setSignupForm({ 
-            name: "", 
-            email: "", 
-            username: "", 
-            password: "", 
-            confirmPassword: "", 
-            role: "student", 
-            class: "" 
-          });
-          setVerificationCode("");
-        }, 1000);
-      } else {
-        setTimeout(() => {
-          setIsVerifying(false);
-          alert(t.verificationFailed);
-        }, 1000);
-      }
-    };
+        const handleSignup = (e) => {
+          e.preventDefault();
+          if (validateForm()) {
+            setSignupStep(2);
+            
+            // Generate verification code (in a real app, this would be sent via email)
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // Create new user
+            const newUser = {
+              id: users.length + 1,
+              ...signupForm,
+              lastActive: new Date().toISOString().split('T')[0],
+              emailVerified: false,
+              verificationCode: code,
+              progress: signupForm.role === "student" ? {
+                completedUnits: 0,
+                quizAverage: 0,
+                assignmentsCompleted: 0
+              } : undefined
+            };
+            
+            setUsers(prev => [...prev, newUser]);
+            alert(`${t.emailSent}\n\n${t.codeSent} ${signupForm.email}\n\n${t.pleaseCheck}`);
+          }
+        };
 
-    const resendVerificationCode = () => {
-      const userToResend = users.find(u => u.email === signupForm.email);
-      if (userToResend) {
-        // Generate new code
-        const newCode = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        setUsers(prev => prev.map(u => 
-          u.email === signupForm.email 
-            ? { ...u, verificationCode: newCode } 
-            : u
-        ));
-        
-        alert(t.resendSuccess);
-      } else {
-        alert(t.resendError);
-      }
-    };
+        const handleVerification = (e) => {
+          e.preventDefault();
+          setIsVerifying(true);
+          
+          // Find user by email
+          const userToVerify = users.find(u => u.email === signupForm.email);
+          
+          if (userToVerify && userToVerify.verificationCode === verificationCode) {
+            // Update user to verified
+            setUsers(prev => prev.map(u => 
+              u.email === signupForm.email 
+                ? { ...u, emailVerified: true } 
+                : u
+            ));
+            
+            setTimeout(() => {
+              setIsVerifying(false);
+              alert(t.verificationSuccess);
+              setCurrentPage("login");
+              setSignupStep(1);
+              setSignupForm({ 
+                name: "", 
+                email: "", 
+                username: "", 
+                password: "", 
+                confirmPassword: "", 
+                role: "student", 
+                class: "" 
+              });
+              setVerificationCode("");
+            }, 1000);
+          } else {
+            setTimeout(() => {
+              setIsVerifying(false);
+              alert(t.verificationFailed);
+            }, 1000);
+          }
+        };
 
-    return (
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        background: "#e8f5e8",
-        padding: "20px"
-      }}>
+        const resendVerificationCode = () => {
+          const userToResend = users.find(u => u.email === signupForm.email);
+          if (userToResend) {
+            // Generate new code
+            const newCode = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            setUsers(prev => prev.map(u => 
+              u.email === signupForm.email 
+                ? { ...u, verificationCode: newCode } 
+                : u
+            ));
+            
+            alert(t.resendSuccess);
+          } else {
+            alert(t.resendError);
+          }
+        };
+
+        return (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "100vh",
+            background: "#e8f5e8",
+            padding: "20px"
+          }}>
+            <div style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "40px",
+              width: "100%",
+              maxWidth: "500px",
+              boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
+            }}>
+              {signupStep === 1 ? (
+                <>
+                  <div style={{
+                    textAlign: "center",
+                    marginBottom: "30px"
+                  }}>
+                    <div style={{
+                      fontSize: "60px",
+                      marginBottom: "20px"
+                    }}>
+                      ✍️
+                    </div>
+                    <h2 style={{
+                      fontSize: "28px",
+                      fontWeight: "700",
+                      color: "#333",
+                      margin: "0"
+                    }}>
+                      {signupForm.role === "student" ? t.signupAsStudent : t.signupAsTeacher}
+                    </h2>
+                    <p style={{
+                      color: "#666",
+                      marginTop: "10px"
+                    }}>
+                      {t.createAccount}
+                    </p>
+                  </div>
+                  
+                  <form onSubmit={handleSignup} style={{
+                    spaceY: "20px"
+                  }}>
+                    <div style={{
+                      display: "flex",
+                      gap: "10px",
+                      marginBottom: "20px"
+                    }}>
+                      <button 
+                        type="button"
+                        onClick={() => setSignupForm({...signupForm, role: "student"})}
+                        style={{
+                          flex: 1,
+                          background: signupForm.role === "student" ? "#2196f3" : "#e0e0e0",
+                          color: signupForm.role === "student" ? "white" : "#333",
+                          border: "none",
+                          padding: "10px",
+                          borderRadius: "8px",
+                          fontWeight: "500",
+                          cursor: "pointer"
+                        }}
+                      >
+                        {t.student}
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setSignupForm({...signupForm, role: "teacher"})}
+                        style={{
+                          flex: 1,
+                          background: signupForm.role === "teacher" ? "#4caf50" : "#e0e0e0",
+                          color: signupForm.role === "teacher" ? "white" : "#333",
+                          border: "none",
+                          padding: "10px",
+                          borderRadius: "8px",
+                          fontWeight: "500",
+                          cursor: "pointer"
+                        }}
+                      >
+                        {t.teacher}
+                      </button>
+                    </div>
+                    
+                    <div style={{
+                      marginBottom: "20px"
+                    }}>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px"
+                      }}>
+                        {t.name}
+                      </label>
+                      <input
+                        type="text"
+                        value={signupForm.name}
+                        onChange={(e) => setSignupForm({...signupForm, name: e.target.value})}
+                        style={{
+                          width: "100%",
+                          border: "2px solid " + (errors.name ? "#f44336" : "#ddd"),
+                          borderRadius: "8px",
+                          padding: "12px",
+                          fontSize: "16px",
+                          outline: "none"
+                        }}
+                        placeholder="Enter your full name"
+                      />
+                      {errors.name && (
+                        <p style={{
+                          color: "#f44336",
+                          fontSize: "12px",
+                          marginTop: "4px"
+                        }}>
+                          {errors.name}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div style={{
+                      marginBottom: "20px"
+                    }}>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px"
+                      }}>
+                        {t.email}
+                      </label>
+                      <input
+                        type="email"
+                        value={signupForm.email}
+                        onChange={(e) => setSignupForm({...signupForm, email: e.target.value})}
+                        style={{
+                          width: "100%",
+                          border: "2px solid " + (errors.email ? "#f44336" : "#ddd"),
+                          borderRadius: "8px",
+                          padding: "12px",
+                          fontSize: "16px",
+                          outline: "none"
+                        }}
+                        placeholder="Enter your email address"
+                      />
+                      {errors.email && (
+                        <p style={{
+                          color: "#f44336",
+                          fontSize: "12px",
+                          marginTop: "4px"
+                        }}>
+                          {errors.email}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div style={{
+                      marginBottom: "20px"
+                    }}>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px"
+                      }}>
+                        {t.username}
+                      </label>
+                      <input
+                        type="text"
+                        value={signupForm.username}
+                        onChange={(e) => setSignupForm({...signupForm, username: e.target.value})}
+                        style={{
+                          width: "100%",
+                          border: "2px solid " + (errors.username ? "#f44336" : "#ddd"),
+                          borderRadius: "8px",
+                          padding: "12px",
+                          fontSize: "16px",
+                          outline: "none"
+                        }}
+                        placeholder="Choose a username"
+                      />
+                      {errors.username && (
+                        <p style={{
+                          color: "#f44336",
+                          fontSize: "12px",
+                          marginTop: "4px"
+                        }}>
+                          {errors.username}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div style={{
+                      marginBottom: "20px"
+                    }}>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px"
+                      }}>
+                        {t.password}
+                      </label>
+                      <div style={{
+                        position: "relative"
+                      }}>
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value={signupForm.password}
+                          onChange={(e) => setSignupForm({...signupForm, password: e.target.value})}
+                          style={{
+                            width: "100%",
+                            border: "2px solid " + (errors.password ? "#f44336" : "#ddd"),
+                            borderRadius: "8px",
+                            padding: "12px",
+                            fontSize: "16px",
+                            outline: "none",
+                            paddingRight: "40px"
+                          }}
+                          placeholder="Create a password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          style={{
+                            position: "absolute",
+                            right: "12px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "none",
+                            border: "none",
+                            color: "#666",
+                            cursor: "pointer"
+                          }}
+                        >
+                          {showPassword ? "👁️" : "👁️‍🗨️"}
+                        </button>
+                      </div>
+                      {errors.password && (
+                        <p style={{
+                          color: "#f44336",
+                          fontSize: "12px",
+                          marginTop: "4px"
+                        }}>
+                          {errors.password}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div style={{
+                      marginBottom: "20px"
+                    }}>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px"
+                      }}>
+                        {t.confirmPassword}
+                      </label>
+                      <div style={{
+                        position: "relative"
+                      }}>
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          value={signupForm.confirmPassword}
+                          onChange={(e) => setSignupForm({...signupForm, confirmPassword: e.target.value})}
+                          style={{
+                            width: "100%",
+                            border: "2px solid " + (errors.confirmPassword ? "#f44336" : "#ddd"),
+                            borderRadius: "8px",
+                            padding: "12px",
+                            fontSize: "16px",
+                            outline: "none",
+                            paddingRight: "40px"
+                          }}
+                          placeholder="Confirm your password"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          style={{
+                            position: "absolute",
+                            right: "12px",
+                            top: "50%",
+                            transform: "translateY(-50%)",
+                            background: "none",
+                            border: "none",
+                            color: "#666",
+                            cursor: "pointer"
+                          }}
+                        >
+                          {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                        </button>
+                      </div>
+                      {errors.confirmPassword && (
+                        <p style={{
+                          color: "#f44336",
+                          fontSize: "12px",
+                          marginTop: "4px"
+                        }}>
+                          {errors.confirmPassword}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div style={{
+                      marginBottom: "20px"
+                    }}>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px"
+                      }}>
+                        {signupForm.role === "student" ? t.studentClass : t.teacherClass}
+                      </label>
+                      <input
+                        type="text"
+                        value={signupForm.class}
+                        onChange={(e) => setSignupForm({...signupForm, class: e.target.value})}
+                        style={{
+                          width: "100%",
+                          border: "2px solid " + (errors.class ? "#f44336" : "#ddd"),
+                          borderRadius: "8px",
+                          padding: "12px",
+                          fontSize: "16px",
+                          outline: "none"
+                        }}
+                        placeholder={signupForm.role === "student" ? "e.g., Grade 7" : "e.g., Grade 7-9"}
+                      />
+                      {errors.class && (
+                        <p style={{
+                          color: "#f44336",
+                          fontSize: "12px",
+                          marginTop: "4px"
+                        }}>
+                          {errors.class}
+                        </p>
+                      )}
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      style={{
+                        width: "100%",
+                        background: "linear-gradient(135deg, #4caf50, #66bb6a)",
+                        color: "white",
+                        border: "none",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        cursor: "pointer"
+                      }}
+                    >
+                      {t.continue}
+                    </button>
+                  </form>
+                  
+                  <div style={{
+                    textAlign: "center",
+                    marginTop: "20px"
+                  }}>
+                    <p style={{
+                      color: "#666",
+                      fontSize: "14px"
+                    }}>
+                      {t.alreadyHaveAccount}{" "}
+                      <button 
+                        onClick={() => navigateTo("login")}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#2196f3",
+                          fontWeight: "500",
+                          cursor: "pointer"
+                        }}
+                      >
+                        {t.login}
+                      </button>
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{
+                    textAlign: "center",
+                    marginBottom: "30px"
+                  }}>
+                    <div style={{
+                      fontSize: "60px",
+                      marginBottom: "20px"
+                    }}>
+                      ✉️
+                    </div>
+                    <h2 style={{
+                      fontSize: "28px",
+                      fontWeight: "700",
+                      color: "#333",
+                      margin: "0"
+                    }}>
+                      {t.emailVerification}
+                    </h2>
+                    <p style={{
+                      color: "#666",
+                      marginTop: "10px"
+                    }}>
+                      {t.verificationSent}
+                    </p>
+                  </div>
+                  
+                  <form onSubmit={handleVerification} style={{
+                    spaceY: "20px"
+                  }}>
+                    <div style={{
+                      marginBottom: "20px",
+                      textAlign: "center"
+                    }}>
+                      <p style={{
+                        color: "#666",
+                        fontSize: "14px",
+                        marginBottom: "15px"
+                      }}>
+                        {t.codeSent} <strong>{signupForm.email}</strong>
+                      </p>
+                      <p style={{
+                        color: "#666",
+                        fontSize: "14px",
+                        marginBottom: "20px"
+                      }}>
+                        {t.pleaseCheck}
+                      </p>
+                    </div>
+                    
+                    <div style={{
+                      marginBottom: "20px"
+                    }}>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px",
+                        textAlign: "center"
+                      }}>
+                        {t.verificationCode}
+                      </label>
+                      <input
+                        type="text"
+                        value={verificationCode}
+                        onChange={(e) => setVerificationCode(e.target.value)}
+                        style={{
+                          width: "100%",
+                          border: "2px solid #ddd",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          fontSize: "16px",
+                          outline: "none",
+                          textAlign: "center",
+                          letterSpacing: "8px"
+                        }}
+                        placeholder="123456"
+                        maxLength="6"
+                        required
+                      />
+                    </div>
+                    
+                    <button
+                      type="submit"
+                      disabled={isVerifying}
+                      style={{
+                        width: "100%",
+                        background: isVerifying ? "#9e9e9e" : "linear-gradient(135deg, #4caf50, #66bb6a)",
+                        color: "white",
+                        border: "none",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        fontSize: "16px",
+                        fontWeight: "600",
+                        cursor: isVerifying ? "not-allowed" : "pointer"
+                      }}
+                    >
+                      {isVerifying ? t.verificationInProgress : t.verify}
+                    </button>
+                    
+                    <div style={{
+                      textAlign: "center",
+                      marginTop: "15px"
+                    }}>
+                      <button 
+                        type="button"
+                        onClick={resendVerificationCode}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "#2196f3",
+                          fontWeight: "500",
+                          cursor: "pointer"
+                        }}
+                      >
+                        {t.resendCode}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      };
+
+      // Student Dashboard
+      const StudentDashboard = () => (
         <div style={{
-          background: "white",
-          borderRadius: "12px",
-          padding: "40px",
-          width: "100%",
-          maxWidth: "500px",
-          boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "20px",
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
         }}>
-          {signupStep === 1 ? (
-            <>
+          <div style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "30px",
+            marginBottom: "20px",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <h2 style={{
+              fontSize: "28px",
+              fontWeight: "700",
+              color: "#333",
+              marginBottom: "20px"
+            }}>
+              {t.studentDashboard}
+            </h2>
+            
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: "20px",
+              marginBottom: "30px"
+            }}>
+              <div style={{
+                background: "#e3f2fd",
+                padding: "20px",
+                borderRadius: "8px",
+                textAlign: "center"
+              }}>
+                <div style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: "#1976d2",
+                  marginBottom: "5px"
+                }}>
+                  {user?.progress?.completedUnits || 0}
+                </div>
+                <div style={{
+                  fontSize: "14px",
+                  color: "#1976d2"
+                }}>
+                  {t.completedUnits}
+                </div>
+              </div>
+              
+              <div style={{
+                background: "#e8f5e8",
+                padding: "20px",
+                borderRadius: "8px",
+                textAlign: "center"
+              }}>
+                <div style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: "#388e3c",
+                  marginBottom: "5px"
+                }}>
+                  {user?.progress?.quizAverage || 0}%
+                </div>
+                <div style={{
+                  fontSize: "14px",
+                  color: "#388e3c"
+                }}>
+                  {t.quizAverage}
+                </div>
+              </div>
+              
+              <div style={{
+                background: "#fff3e0",
+                padding: "20px",
+                borderRadius: "8px",
+                textAlign: "center"
+              }}>
+                <div style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: "#f57c00",
+                  marginBottom: "5px"
+                }}>
+                  {user?.progress?.assignmentsCompleted || 0}
+                </div>
+                <div style={{
+                  fontSize: "14px",
+                  color: "#f57c00"
+                }}>
+                  {t.assignmentsCompleted}
+                </div>
+              </div>
+            </div>
+            
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "20px"
+            }}>
+              <div>
+                <h3 style={{
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  color: "#333",
+                  marginBottom: "15px"
+                }}>
+                  {t.profile}
+                </h3>
+                <div style={{
+                  spaceY: "10px"
+                }}>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
+                    borderBottom: "1px solid #eee"
+                  }}>
+                    <span style={{color: "#666"}}>{t.name}</span>
+                    <span style={{fontWeight: "500"}}>{user?.name}</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
+                    borderBottom: "1px solid #eee"
+                  }}>
+                    <span style={{color: "#666"}}>{t.email}</span>
+                    <span style={{fontWeight: "500"}}>{user?.email}</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
+                    borderBottom: "1px solid #eee"
+                  }}>
+                    <span style={{color: "#666"}}>{t.class}</span>
+                    <span style={{fontWeight: "500"}}>{user?.class}</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
+                    borderBottom: "1px solid #eee"
+                  }}>
+                    <span style={{color: "#666"}}>{t.role}</span>
+                    <span style={{fontWeight: "500", textTransform: "capitalize"}}>{user?.role}</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0"
+                  }}>
+                    <span style={{color: "#666"}}>{t.lastActive}</span>
+                    <span style={{fontWeight: "500"}}>{user?.lastActive}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      // Teacher Dashboard
+      const TeacherDashboard = () => (
+        <div style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "20px",
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+        }}>
+          <div style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "30px",
+            marginBottom: "20px",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <h2 style={{
+              fontSize: "28px",
+              fontWeight: "700",
+              color: "#333",
+              marginBottom: "20px"
+            }}>
+              {t.teacherDashboard}
+            </h2>
+            
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: "20px",
+              marginBottom: "30px"
+            }}>
+              <div style={{
+                background: "#f3e5f5",
+                padding: "20px",
+                borderRadius: "8px",
+                textAlign: "center"
+              }}>
+                <div style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: "#7b1fa2",
+                  marginBottom: "5px"
+                }}>
+                  {users.filter(u => u.role === "student").length}
+                </div>
+                <div style={{
+                  fontSize: "14px",
+                  color: "#7b1fa2"
+                }}>
+                  {t.manageStudents}
+                </div>
+              </div>
+              
+              <div style={{
+                background: "#ffecb3",
+                padding: "20px",
+                borderRadius: "8px",
+                textAlign: "center"
+              }}>
+                <div style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: "#ff8f00",
+                  marginBottom: "5px"
+                }}>
+                  {assignments.length}
+                </div>
+                <div style={{
+                  fontSize: "14px",
+                  color: "#ff8f00"
+                }}>
+                  {t.createAssignment}
+                </div>
+              </div>
+              
+              <div style={{
+                background: "#e8f5e8",
+                padding: "20px",
+                borderRadius: "8px",
+                textAlign: "center"
+              }}>
+                <div style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: "#388e3c",
+                  marginBottom: "5px"
+                }}>
+                  {quizzes.length}
+                </div>
+                <div style={{
+                  fontSize: "14px",
+                  color: "#388e3c"
+                }}>
+                  {t.viewProgress}
+                </div>
+              </div>
+            </div>
+            
+            <div style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "20px"
+            }}>
+              <div>
+                <h3 style={{
+                  fontSize: "18px",
+                  fontWeight: "600",
+                  color: "#333",
+                  marginBottom: "15px"
+                }}>
+                  {t.profile}
+                </h3>
+                <div style={{
+                  spaceY: "10px"
+                }}>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
+                    borderBottom: "1px solid #eee"
+                  }}>
+                    <span style={{color: "#666"}}>{t.name}</span>
+                    <span style={{fontWeight: "500"}}>{user?.name}</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
+                    borderBottom: "1px solid #eee"
+                  }}>
+                    <span style={{color: "#666"}}>{t.email}</span>
+                    <span style={{fontWeight: "500"}}>{user?.email}</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
+                    borderBottom: "1px solid #eee"
+                  }}>
+                    <span style={{color: "#666"}}>{t.class}</span>
+                    <span style={{fontWeight: "500"}}>{user?.class}</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0",
+                    borderBottom: "1px solid #eee"
+                  }}>
+                    <span style={{color: "#666"}}>{t.role}</span>
+                    <span style={{fontWeight: "500", textTransform: "capitalize"}}>{user?.role}</span>
+                  </div>
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    padding: "8px 0"
+                  }}>
+                    <span style={{color: "#666"}}>{t.lastActive}</span>
+                    <span style={{fontWeight: "500"}}>{user?.lastActive}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      // Home Page
+      const HomePage = () => {
+        if (!user) {
+          return <LoginPage />;
+        }
+
+        return (
+          <div style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+            padding: "20px",
+            fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+          }}>
+            {user.role === "student" ? <StudentDashboard /> : <TeacherDashboard />}
+            
+            <div style={{
+              textAlign: "center",
+              marginBottom: "40px"
+            }}>
+              <h1 style={{
+                color: "#2e7d32",
+                fontSize: "3.5rem",
+                fontWeight: "700",
+                margin: "0 0 10px 0",
+                textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)"
+              }}>
+                {t.welcome}
+              </h1>
+              <p style={{
+                fontSize: "1.2rem",
+                color: "#333",
+                maxWidth: "800px",
+                margin: "0 auto"
+              }}>
+                {currentLanguage === "en" 
+                  ? "Explore our resources to enhance your understanding of biology and track your progress."
+                  : "探索我们的资源，加深您对生物学的理解并跟踪您的学习进度。"}
+              </p>
+            </div>
+
+            <div style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "20px",
+              justifyContent: "center",
+              marginTop: "40px"
+            }}>
+              {[
+                { icon: "📚", title: t.library, description: currentLanguage === "en" ? "Access articles and videos tailored to your learning level" : "访问适合您学习水平的文章和视频", color: "#2196f3" },
+                { icon: "✏️", title: t.exercises, description: currentLanguage === "en" ? "Practice exam-style questions and reinforce your knowledge" : "练习考试题型并巩固您的知识", color: "#4caf50" },
+                { icon: "📋", title: t.assignments, description: currentLanguage === "en" ? "Complete teacher-assigned homework and tasks" : "完成老师布置的作业和任务", color: "#9c27b0" },
+                { icon: "📊", title: t.progress, description: currentLanguage === "en" ? "Take quizzes to assess your understanding and monitor progress" : "参加测验来评估您的理解并监控进度", color: "#ff9800" }
+              ].map((item, index) => (
+                <div 
+                  key={index}
+                  onClick={() => navigateTo(item.title.toLowerCase())}
+                  style={{
+                    width: "250px",
+                    height: "300px",
+                    background: "white",
+                    borderRadius: "12px",
+                    boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+                    overflow: "hidden",
+                    transition: "all 0.3s ease",
+                    border: "none",
+                    cursor: "pointer"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-10px)";
+                    e.currentTarget.style.boxShadow = "0 10px 25px rgba(0, 0, 0, 0.15)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.1)";
+                  }}
+                >
+                  <div style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    height: "100px",
+                    marginBottom: "15px",
+                    borderBottom: `4px solid ${item.color}`
+                  }}>
+                    <div style={{
+                      fontSize: "60px"
+                    }}>
+                      {item.icon}
+                    </div>
+                  </div>
+                  <div style={{
+                    padding: "20px",
+                    textAlign: "center"
+                  }}>
+                    <h3 style={{
+                      fontSize: "1.3rem",
+                      fontWeight: "700",
+                      marginBottom: "10px",
+                      color: "#333"
+                    }}>
+                      {item.title}
+                    </h3>
+                    <p style={{
+                      fontSize: "0.9rem",
+                      color: "#666",
+                      margin: "0"
+                    }}>
+                      {item.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Admin Access Button */}
+            <div style={{
+              textAlign: "center",
+              marginTop: "40px"
+            }}>
+              <button 
+                onClick={() => navigateTo("admin-login")}
+                style={{
+                  background: "linear-gradient(135deg, #673ab7, #9c27b0)",
+                  color: "white",
+                  border: "none",
+                  padding: "15px 30px",
+                  borderRadius: "25px",
+                  fontSize: "1.2rem",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                  boxShadow: "0 4px 15px rgba(156, 39, 176, 0.3)",
+                  transition: "all 0.3s ease"
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                  e.currentTarget.style.boxShadow = "0 6px 20px rgba(156, 39, 176, 0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                  e.currentTarget.style.boxShadow = "0 4px 15px rgba(156, 39, 176, 0.3)";
+                }}
+              >
+                🔐 {t.adminAccess}
+              </button>
+            </div>
+          </div>
+        );
+      };
+
+      // Admin Login Page
+      const AdminLoginPage = () => {
+        const [code, setCode] = useState("");
+        const [error, setError] = useState("");
+
+        const handleSubmit = (e) => {
+          e.preventDefault();
+          if (verifyAdminCode(code)) {
+            setError("");
+          } else {
+            setError(t.invalidCode);
+          }
+        };
+
+        return (
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "100vh",
+            background: "#e8f5e8",
+            padding: "20px"
+          }}>
+            <div style={{
+              background: "white",
+              borderRadius: "12px",
+              padding: "40px",
+              width: "100%",
+              maxWidth: "400px",
+              boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
+            }}>
               <div style={{
                 textAlign: "center",
                 marginBottom: "30px"
               }}>
                 <div style={{
-                  fontSize: "60px",
+                  fontSize: "80px",
                   marginBottom: "20px"
                 }}>
-                  ✍️
+                  🔐
                 </div>
                 <h2 style={{
                   fontSize: "28px",
@@ -1006,59 +2140,14 @@ export default function App() {
                   color: "#333",
                   margin: "0"
                 }}>
-                  {signupForm.role === "student" ? t.signupAsStudent : t.signupAsTeacher}
+                  {t.adminAccess}
                 </h2>
-                <p style={{
-                  color: "#666",
-                  marginTop: "10px"
-                }}>
-                  {t.createAccount}
-                </p>
               </div>
               
-              <form onSubmit={handleSignup} style={{
+              <form onSubmit={handleSubmit} style={{
                 spaceY: "20px"
               }}>
                 <div style={{
-                  display: "flex",
-                  gap: "10px",
-                  marginBottom: "20px"
-                }}>
-                  <button 
-                    type="button"
-                    onClick={() => setSignupForm({...signupForm, role: "student"})}
-                    style={{
-                      flex: 1,
-                      background: signupForm.role === "student" ? "#2196f3" : "#e0e0e0",
-                      color: signupForm.role === "student" ? "white" : "#333",
-                      border: "none",
-                      padding: "10px",
-                      borderRadius: "8px",
-                      fontWeight: "500",
-                      cursor: "pointer"
-                    }}
-                  >
-                    {t.student}
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => setSignupForm({...signupForm, role: "teacher"})}
-                    style={{
-                      flex: 1,
-                      background: signupForm.role === "teacher" ? "#4caf50" : "#e0e0e0",
-                      color: signupForm.role === "teacher" ? "white" : "#333",
-                      border: "none",
-                      padding: "10px",
-                      borderRadius: "8px",
-                      fontWeight: "500",
-                      cursor: "pointer"
-                    }}
-                  >
-                    {t.teacher}
-                  </button>
-                </div>
-                
-                <div style={{
                   marginBottom: "20px"
                 }}>
                   <label style={{
@@ -1068,259 +2157,37 @@ export default function App() {
                     color: "#333",
                     marginBottom: "8px"
                   }}>
-                    {t.name}
+                    {t.enterCode}
                   </label>
                   <input
-                    type="text"
-                    value={signupForm.name}
-                    onChange={(e) => setSignupForm({...signupForm, name: e.target.value})}
+                    type="password"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
                     style={{
                       width: "100%",
-                      border: "2px solid " + (errors.name ? "#f44336" : "#ddd"),
+                      border: "2px solid #ddd",
                       borderRadius: "8px",
                       padding: "12px",
                       fontSize: "16px",
                       outline: "none"
                     }}
-                    placeholder="Enter your full name"
+                    placeholder={currentLanguage === "en" ? "Enter admin code" : "输入管理员代码"}
+                    autoFocus
                   />
-                  {errors.name && (
-                    <p style={{
-                      color: "#f44336",
-                      fontSize: "12px",
-                      marginTop: "4px"
-                    }}>
-                      {errors.name}
-                    </p>
-                  )}
                 </div>
                 
-                <div style={{
-                  marginBottom: "20px"
-                }}>
-                  <label style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "8px"
-                  }}>
-                    {t.email}
-                  </label>
-                  <input
-                    type="email"
-                    value={signupForm.email}
-                    onChange={(e) => setSignupForm({...signupForm, email: e.target.value})}
-                    style={{
-                      width: "100%",
-                      border: "2px solid " + (errors.email ? "#f44336" : "#ddd"),
-                      borderRadius: "8px",
-                      padding: "12px",
-                      fontSize: "16px",
-                      outline: "none"
-                    }}
-                    placeholder="Enter your email address"
-                  />
-                  {errors.email && (
-                    <p style={{
-                      color: "#f44336",
-                      fontSize: "12px",
-                      marginTop: "4px"
-                    }}>
-                      {errors.email}
-                    </p>
-                  )}
-                </div>
-                
-                <div style={{
-                  marginBottom: "20px"
-                }}>
-                  <label style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "8px"
-                  }}>
-                    {t.username}
-                  </label>
-                  <input
-                    type="text"
-                    value={signupForm.username}
-                    onChange={(e) => setSignupForm({...signupForm, username: e.target.value})}
-                    style={{
-                      width: "100%",
-                      border: "2px solid " + (errors.username ? "#f44336" : "#ddd"),
-                      borderRadius: "8px",
-                      padding: "12px",
-                      fontSize: "16px",
-                      outline: "none"
-                    }}
-                    placeholder="Choose a username"
-                  />
-                  {errors.username && (
-                    <p style={{
-                      color: "#f44336",
-                      fontSize: "12px",
-                      marginTop: "4px"
-                    }}>
-                      {errors.username}
-                    </p>
-                  )}
-                </div>
-                
-                <div style={{
-                  marginBottom: "20px"
-                }}>
-                  <label style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "8px"
-                  }}>
-                    {t.password}
-                  </label>
+                {error && (
                   <div style={{
-                    position: "relative"
-                  }}>
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      value={signupForm.password}
-                      onChange={(e) => setSignupForm({...signupForm, password: e.target.value})}
-                      style={{
-                        width: "100%",
-                        border: "2px solid " + (errors.password ? "#f44336" : "#ddd"),
-                        borderRadius: "8px",
-                        padding: "12px",
-                        fontSize: "16px",
-                        outline: "none",
-                        paddingRight: "40px"
-                      }}
-                      placeholder="Create a password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      style={{
-                        position: "absolute",
-                        right: "12px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        background: "none",
-                        border: "none",
-                        color: "#666",
-                        cursor: "pointer"
-                      }}
-                    >
-                      {showPassword ? "👁️" : "👁️‍🗨️"}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p style={{
-                      color: "#f44336",
-                      fontSize: "12px",
-                      marginTop: "4px"
-                    }}>
-                      {errors.password}
-                    </p>
-                  )}
-                </div>
-                
-                <div style={{
-                  marginBottom: "20px"
-                }}>
-                  <label style={{
-                    display: "block",
+                    backgroundColor: "#ffebee",
+                    color: "#c62828",
+                    padding: "12px",
+                    borderRadius: "8px",
                     fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "8px"
+                    marginBottom: "20px"
                   }}>
-                    {t.confirmPassword}
-                  </label>
-                  <div style={{
-                    position: "relative"
-                  }}>
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={signupForm.confirmPassword}
-                      onChange={(e) => setSignupForm({...signupForm, confirmPassword: e.target.value})}
-                      style={{
-                        width: "100%",
-                        border: "2px solid " + (errors.confirmPassword ? "#f44336" : "#ddd"),
-                        borderRadius: "8px",
-                        padding: "12px",
-                        fontSize: "16px",
-                        outline: "none",
-                        paddingRight: "40px"
-                      }}
-                      placeholder="Confirm your password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      style={{
-                        position: "absolute",
-                        right: "12px",
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        background: "none",
-                        border: "none",
-                        color: "#666",
-                        cursor: "pointer"
-                      }}
-                    >
-                      {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
-                    </button>
+                    {error}
                   </div>
-                  {errors.confirmPassword && (
-                    <p style={{
-                      color: "#f44336",
-                      fontSize: "12px",
-                      marginTop: "4px"
-                    }}>
-                      {errors.confirmPassword}
-                    </p>
-                  )}
-                </div>
-                
-                <div style={{
-                  marginBottom: "20px"
-                }}>
-                  <label style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "8px"
-                  }}>
-                    {signupForm.role === "student" ? t.studentClass : t.teacherClass}
-                  </label>
-                  <input
-                    type="text"
-                    value={signupForm.class}
-                    onChange={(e) => setSignupForm({...signupForm, class: e.target.value})}
-                    style={{
-                      width: "100%",
-                      border: "2px solid " + (errors.class ? "#f44336" : "#ddd"),
-                      borderRadius: "8px",
-                      padding: "12px",
-                      fontSize: "16px",
-                      outline: "none"
-                    }}
-                    placeholder={signupForm.role === "student" ? "e.g., Grade 7" : "e.g., Grade 7-9"}
-                  />
-                  {errors.class && (
-                    <p style={{
-                      color: "#f44336",
-                      fontSize: "12px",
-                      marginTop: "4px"
-                    }}>
-                      {errors.class}
-                    </p>
-                  )}
-                </div>
+                )}
                 
                 <button
                   type="submit"
@@ -1336,1173 +2203,434 @@ export default function App() {
                     cursor: "pointer"
                   }}
                 >
-                  {t.continue}
+                  {currentLanguage === "en" ? "Submit" : "提交"}
                 </button>
               </form>
-              
-              <div style={{
-                textAlign: "center",
-                marginTop: "20px"
-              }}>
-                <p style={{
-                  color: "#666",
-                  fontSize: "14px"
-                }}>
-                  {t.alreadyHaveAccount}{" "}
-                  <button 
-                    onClick={() => navigateTo("login")}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#2196f3",
-                      fontWeight: "500",
-                      cursor: "pointer"
-                    }}
-                  >
-                    {t.login}
-                  </button>
-                </p>
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{
-                textAlign: "center",
-                marginBottom: "30px"
-              }}>
-                <div style={{
-                  fontSize: "60px",
-                  marginBottom: "20px"
-                }}>
-                  ✉️
-                </div>
+            </div>
+          </div>
+        );
+      };
+
+      // Admin Panel
+      const AdminPanel = () => (
+        <div style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "20px",
+          fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
+        }}>
+          {/* Header */}
+          <div style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "20px",
+            marginBottom: "20px",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between"
+            }}>
+              <div>
                 <h2 style={{
                   fontSize: "28px",
                   fontWeight: "700",
                   color: "#333",
                   margin: "0"
                 }}>
-                  {t.emailVerification}
+                  🔐 {t.admin} Panel
                 </h2>
                 <p style={{
-                  color: "#666",
-                  marginTop: "10px"
+                  color: "#4caf50",
+                  fontWeight: "600",
+                  margin: "10px 0 0 0"
                 }}>
-                  {t.verificationSent}
+                  {t.accessGranted}
                 </p>
               </div>
-              
-              <form onSubmit={handleVerification} style={{
-                spaceY: "20px"
-              }}>
-                <div style={{
-                  marginBottom: "20px",
-                  textAlign: "center"
-                }}>
-                  <p style={{
-                    color: "#666",
-                    fontSize: "14px",
-                    marginBottom: "15px"
-                  }}>
-                    {t.codeSent} <strong>{signupForm.email}</strong>
-                  </p>
-                  <p style={{
-                    color: "#666",
-                    fontSize: "14px",
-                    marginBottom: "20px"
-                  }}>
-                    {t.pleaseCheck}
-                  </p>
-                </div>
-                
-                <div style={{
-                  marginBottom: "20px"
-                }}>
-                  <label style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "8px",
-                    textAlign: "center"
-                  }}>
-                    {t.verificationCode}
-                  </label>
-                  <input
-                    type="text"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value)}
-                    style={{
-                      width: "100%",
-                      border: "2px solid #ddd",
-                      borderRadius: "8px",
-                      padding: "12px",
-                      fontSize: "16px",
-                      outline: "none",
-                      textAlign: "center",
-                      letterSpacing: "8px"
-                    }}
-                    placeholder="123456"
-                    maxLength="6"
-                    required
-                  />
-                </div>
-                
+              <button 
+                onClick={handleLogout}
+                style={{
+                  background: "linear-gradient(135deg, #f44336, #ef5350)",
+                  color: "white",
+                  border: "none",
+                  padding: "10px 20px",
+                  borderRadius: "8px",
+                  fontWeight: "600",
+                  cursor: "pointer"
+                }}
+              >
+                {t.logout}
+              </button>
+            </div>
+          </div>
+
+          {/* Admin Navigation Tabs */}
+          <div style={{
+            background: "white",
+            borderRadius: "12px",
+            padding: "10px",
+            marginBottom: "20px",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+          }}>
+            <div style={{
+              display: "flex",
+              spaceX: "8px"
+            }}>
+              {[
+                { id: "units", label: t.unitManagement, icon: "📚" },
+                { id: "content", label: t.contentManagement, icon: "📄" },
+                { id: "assignments", label: t.assignmentManagement, icon: "📋" },
+                { id: "quizzes", label: t.quizManagement, icon: "📊" },
+                { id: "users", label: t.userManagement, icon: "👥" }
+              ].map(tab => (
                 <button
-                  type="submit"
-                  disabled={isVerifying}
+                  key={tab.id}
+                  onClick={() => navigateToAdminTab(tab.id)}
                   style={{
-                    width: "100%",
-                    background: isVerifying ? "#9e9e9e" : "linear-gradient(135deg, #4caf50, #66bb6a)",
-                    color: "white",
-                    border: "none",
-                    padding: "12px",
-                    borderRadius: "8px",
-                    fontSize: "16px",
-                    fontWeight: "600",
-                    cursor: isVerifying ? "not-allowed" : "pointer"
-                  }}
-                >
-                  {isVerifying ? t.verificationInProgress : t.verify}
-                </button>
-                
-                <div style={{
-                  textAlign: "center",
-                  marginTop: "15px"
-                }}>
-                  <button 
-                    type="button"
-                    onClick={resendVerificationCode}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#2196f3",
-                      fontWeight: "500",
-                      cursor: "pointer"
-                    }}
-                  >
-                    {t.resendCode}
-                  </button>
-                </div>
-              </form>
-            </>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  // Student Dashboard
-  const StudentDashboard = () => (
-    <div style={{
-      maxWidth: "1200px",
-      margin: "0 auto",
-      padding: "20px",
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-    }}>
-      <div style={{
-        background: "white",
-        borderRadius: "12px",
-        padding: "30px",
-        marginBottom: "20px",
-        boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
-      }}>
-        <h2 style={{
-          fontSize: "28px",
-          fontWeight: "700",
-          color: "#333",
-          marginBottom: "20px"
-        }}>
-          {t.studentDashboard}
-        </h2>
-        
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: "20px",
-          marginBottom: "30px"
-        }}>
-          <div style={{
-            background: "#e3f2fd",
-            padding: "20px",
-            borderRadius: "8px",
-            textAlign: "center"
-          }}>
-            <div style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#1976d2",
-              marginBottom: "5px"
-            }}>
-              {user?.progress?.completedUnits || 0}
-            </div>
-            <div style={{
-              fontSize: "14px",
-              color: "#1976d2"
-            }}>
-              {t.completedUnits}
-            </div>
-          </div>
-          
-          <div style={{
-            background: "#e8f5e8",
-            padding: "20px",
-            borderRadius: "8px",
-            textAlign: "center"
-          }}>
-            <div style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#388e3c",
-              marginBottom: "5px"
-            }}>
-              {user?.progress?.quizAverage || 0}%
-            </div>
-            <div style={{
-              fontSize: "14px",
-              color: "#388e3c"
-            }}>
-              {t.quizAverage}
-            </div>
-          </div>
-          
-          <div style={{
-            background: "#fff3e0",
-            padding: "20px",
-            borderRadius: "8px",
-            textAlign: "center"
-          }}>
-            <div style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#f57c00",
-              marginBottom: "5px"
-            }}>
-              {user?.progress?.assignmentsCompleted || 0}
-            </div>
-            <div style={{
-              fontSize: "14px",
-              color: "#f57c00"
-            }}>
-              {t.assignmentsCompleted}
-            </div>
-          </div>
-        </div>
-        
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "20px"
-        }}>
-          <div>
-            <h3 style={{
-              fontSize: "18px",
-              fontWeight: "600",
-              color: "#333",
-              marginBottom: "15px"
-            }}>
-              {t.profile}
-            </h3>
-            <div style={{
-              spaceY: "10px"
-            }}>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #eee"
-              }}>
-                <span style={{color: "#666"}}>{t.name}</span>
-                <span style={{fontWeight: "500"}}>{user?.name}</span>
-              </div>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #eee"
-              }}>
-                <span style={{color: "#666"}}>{t.email}</span>
-                <span style={{fontWeight: "500"}}>{user?.email}</span>
-              </div>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #eee"
-              }}>
-                <span style={{color: "#666"}}>{t.class}</span>
-                <span style={{fontWeight: "500"}}>{user?.class}</span>
-              </div>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #eee"
-              }}>
-                <span style={{color: "#666"}}>{t.role}</span>
-                <span style={{fontWeight: "500", textTransform: "capitalize"}}>{user?.role}</span>
-              </div>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0"
-              }}>
-                <span style={{color: "#666"}}>{t.lastActive}</span>
-                <span style={{fontWeight: "500"}}>{user?.lastActive}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Teacher Dashboard
-  const TeacherDashboard = () => (
-    <div style={{
-      maxWidth: "1200px",
-      margin: "0 auto",
-      padding: "20px",
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-    }}>
-      <div style={{
-        background: "white",
-        borderRadius: "12px",
-        padding: "30px",
-        marginBottom: "20px",
-        boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
-      }}>
-        <h2 style={{
-          fontSize: "28px",
-          fontWeight: "700",
-          color: "#333",
-          marginBottom: "20px"
-        }}>
-          {t.teacherDashboard}
-        </h2>
-        
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          gap: "20px",
-          marginBottom: "30px"
-        }}>
-          <div style={{
-            background: "#f3e5f5",
-            padding: "20px",
-            borderRadius: "8px",
-            textAlign: "center"
-          }}>
-            <div style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#7b1fa2",
-              marginBottom: "5px"
-            }}>
-              {users.filter(u => u.role === "student").length}
-            </div>
-            <div style={{
-              fontSize: "14px",
-              color: "#7b1fa2"
-            }}>
-              {t.manageStudents}
-            </div>
-          </div>
-          
-          <div style={{
-            background: "#ffecb3",
-            padding: "20px",
-            borderRadius: "8px",
-            textAlign: "center"
-          }}>
-            <div style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#ff8f00",
-              marginBottom: "5px"
-            }}>
-              {assignments.length}
-            </div>
-            <div style={{
-              fontSize: "14px",
-              color: "#ff8f00"
-            }}>
-              {t.createAssignment}
-            </div>
-          </div>
-          
-          <div style={{
-            background: "#e8f5e8",
-            padding: "20px",
-            borderRadius: "8px",
-            textAlign: "center"
-          }}>
-            <div style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#388e3c",
-              marginBottom: "5px"
-            }}>
-              {quizzes.length}
-            </div>
-            <div style={{
-              fontSize: "14px",
-              color: "#388e3c"
-            }}>
-              {t.viewProgress}
-            </div>
-          </div>
-        </div>
-        
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "20px"
-        }}>
-          <div>
-            <h3 style={{
-              fontSize: "18px",
-              fontWeight: "600",
-              color: "#333",
-              marginBottom: "15px"
-            }}>
-              {t.profile}
-            </h3>
-            <div style={{
-              spaceY: "10px"
-            }}>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #eee"
-              }}>
-                <span style={{color: "#666"}}>{t.name}</span>
-                <span style={{fontWeight: "500"}}>{user?.name}</span>
-              </div>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #eee"
-              }}>
-                <span style={{color: "#666"}}>{t.email}</span>
-                <span style={{fontWeight: "500"}}>{user?.email}</span>
-              </div>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #eee"
-              }}>
-                <span style={{color: "#666"}}>{t.class}</span>
-                <span style={{fontWeight: "500"}}>{user?.class}</span>
-              </div>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0",
-                borderBottom: "1px solid #eee"
-              }}>
-                <span style={{color: "#666"}}>{t.role}</span>
-                <span style={{fontWeight: "500", textTransform: "capitalize"}}>{user?.role}</span>
-              </div>
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                padding: "8px 0"
-              }}>
-                <span style={{color: "#666"}}>{t.lastActive}</span>
-                <span style={{fontWeight: "500"}}>{user?.lastActive}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Home Page
-  const HomePage = () => {
-    if (!user) {
-      return <LoginPage />;
-    }
-
-    return (
-      <div style={{
-        maxWidth: "1200px",
-        margin: "0 auto",
-        padding: "20px",
-        fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-      }}>
-        {user.role === "student" ? <StudentDashboard /> : <TeacherDashboard />}
-        
-        <div style={{
-          textAlign: "center",
-          marginBottom: "40px"
-        }}>
-          <h1 style={{
-            color: "#2e7d32",
-            fontSize: "3.5rem",
-            fontWeight: "700",
-            margin: "0 0 10px 0",
-            textShadow: "2px 2px 4px rgba(0, 0, 0, 0.1)"
-          }}>
-            {t.welcome}
-          </h1>
-          <p style={{
-            fontSize: "1.2rem",
-            color: "#333",
-            maxWidth: "800px",
-            margin: "0 auto"
-          }}>
-            {currentLanguage === "en" 
-              ? "Explore our resources to enhance your understanding of biology and track your progress."
-              : "探索我们的资源，加深您对生物学的理解并跟踪您的学习进度。"}
-          </p>
-        </div>
-
-        <div style={{
-          display: "flex",
-          flexWrap: "wrap",
-          gap: "20px",
-          justifyContent: "center",
-          marginTop: "40px"
-        }}>
-          {[
-            { icon: "📚", title: t.library, description: currentLanguage === "en" ? "Access articles and videos tailored to your learning level" : "访问适合您学习水平的文章和视频", color: "#2196f3" },
-            { icon: "✏️", title: t.exercises, description: currentLanguage === "en" ? "Practice exam-style questions and reinforce your knowledge" : "练习考试题型并巩固您的知识", color: "#4caf50" },
-            { icon: "📋", title: t.assignments, description: currentLanguage === "en" ? "Complete teacher-assigned homework and tasks" : "完成老师布置的作业和任务", color: "#9c27b0" },
-            { icon: "📊", title: t.progress, description: currentLanguage === "en" ? "Take quizzes to assess your understanding and monitor progress" : "参加测验来评估您的理解并监控进度", color: "#ff9800" }
-          ].map((item, index) => (
-            <div 
-              key={index}
-              onClick={() => navigateTo(item.title.toLowerCase())}
-              style={{
-                width: "250px",
-                height: "300px",
-                background: "white",
-                borderRadius: "12px",
-                boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
-                overflow: "hidden",
-                transition: "all 0.3s ease",
-                border: "none",
-                cursor: "pointer"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-10px)";
-                e.currentTarget.style.boxShadow = "0 10px 25px rgba(0, 0, 0, 0.15)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.1)";
-              }}
-            >
-              <div style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                height: "100px",
-                marginBottom: "15px",
-                borderBottom: `4px solid ${item.color}`
-              }}>
-                <div style={{
-                  fontSize: "60px"
-                }}>
-                  {item.icon}
-                </div>
-              </div>
-              <div style={{
-                padding: "20px",
-                textAlign: "center"
-              }}>
-                <h3 style={{
-                  fontSize: "1.3rem",
-                  fontWeight: "700",
-                  marginBottom: "10px",
-                  color: "#333"
-                }}>
-                  {item.title}
-                </h3>
-                <p style={{
-                  fontSize: "0.9rem",
-                  color: "#666",
-                  margin: "0"
-                }}>
-                  {item.description}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Admin Access Button */}
-        <div style={{
-          textAlign: "center",
-          marginTop: "40px"
-        }}>
-          <button 
-            onClick={() => navigateTo("admin-login")}
-            style={{
-              background: "linear-gradient(135deg, #673ab7, #9c27b0)",
-              color: "white",
-              border: "none",
-              padding: "15px 30px",
-              borderRadius: "25px",
-              fontSize: "1.2rem",
-              fontWeight: "600",
-              cursor: "pointer",
-              boxShadow: "0 4px 15px rgba(156, 39, 176, 0.3)",
-              transition: "all 0.3s ease"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 20px rgba(156, 39, 176, 0.4)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 15px rgba(156, 39, 176, 0.3)";
-            }}
-          >
-            🔐 {t.adminAccess}
-          </button>
-        </div>
-      </div>
-    );
-  };
-
-  // Admin Login Page
-  const AdminLoginPage = () => {
-    const [code, setCode] = useState("");
-    const [error, setError] = useState("");
-
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      if (verifyAdminCode(code)) {
-        setError("");
-      } else {
-        setError(t.invalidCode);
-      }
-    };
-
-    return (
-      <div style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        minHeight: "100vh",
-        background: "#e8f5e8",
-        padding: "20px"
-      }}>
-        <div style={{
-          background: "white",
-          borderRadius: "12px",
-          padding: "40px",
-          width: "100%",
-          maxWidth: "400px",
-          boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
-        }}>
-          <div style={{
-            textAlign: "center",
-            marginBottom: "30px"
-          }}>
-            <div style={{
-              fontSize: "80px",
-              marginBottom: "20px"
-            }}>
-              🔐
-            </div>
-            <h2 style={{
-              fontSize: "28px",
-              fontWeight: "700",
-              color: "#333",
-              margin: "0"
-            }}>
-              {t.adminAccess}
-            </h2>
-          </div>
-          
-          <form onSubmit={handleSubmit} style={{
-            spaceY: "20px"
-          }}>
-            <div style={{
-              marginBottom: "20px"
-            }}>
-              <label style={{
-                display: "block",
-                fontSize: "14px",
-                fontWeight: "500",
-                color: "#333",
-                marginBottom: "8px"
-              }}>
-                {t.enterCode}
-              </label>
-              <input
-                type="password"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                style={{
-                  width: "100%",
-                  border: "2px solid #ddd",
-                  borderRadius: "8px",
-                  padding: "12px",
-                  fontSize: "16px",
-                  outline: "none"
-                }}
-                placeholder={currentLanguage === "en" ? "Enter admin code" : "输入管理员代码"}
-                autoFocus
-              />
-            </div>
-            
-            {error && (
-              <div style={{
-                backgroundColor: "#ffebee",
-                color: "#c62828",
-                padding: "12px",
-                borderRadius: "8px",
-                fontSize: "14px",
-                marginBottom: "20px"
-              }}>
-                {error}
-              </div>
-            )}
-            
-            <button
-              type="submit"
-              style={{
-                width: "100%",
-                background: "linear-gradient(135deg, #4caf50, #66bb6a)",
-                color: "white",
-                border: "none",
-                padding: "12px",
-                borderRadius: "8px",
-                fontSize: "16px",
-                fontWeight: "600",
-                cursor: "pointer"
-              }}
-            >
-              {currentLanguage === "en" ? "Submit" : "提交"}
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  };
-
-  // Admin Panel
-  const AdminPanel = () => (
-    <div style={{
-      maxWidth: "1200px",
-      margin: "0 auto",
-      padding: "20px",
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-    }}>
-      {/* Header */}
-      <div style={{
-        background: "white",
-        borderRadius: "12px",
-        padding: "20px",
-        marginBottom: "20px",
-        boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
-      }}>
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between"
-        }}>
-          <div>
-            <h2 style={{
-              fontSize: "28px",
-              fontWeight: "700",
-              color: "#333",
-              margin: "0"
-            }}>
-              🔐 {t.admin} Panel
-            </h2>
-            <p style={{
-              color: "#4caf50",
-              fontWeight: "600",
-              margin: "10px 0 0 0"
-            }}>
-              {t.accessGranted}
-            </p>
-          </div>
-          <button 
-            onClick={handleLogout}
-            style={{
-              background: "linear-gradient(135deg, #f44336, #ef5350)",
-              color: "white",
-              border: "none",
-              padding: "10px 20px",
-              borderRadius: "8px",
-              fontWeight: "600",
-              cursor: "pointer"
-            }}
-          >
-            {t.logout}
-          </button>
-        </div>
-      </div>
-
-      {/* Admin Navigation Tabs */}
-      <div style={{
-        background: "white",
-        borderRadius: "12px",
-        padding: "10px",
-        marginBottom: "20px",
-        boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
-      }}>
-        <div style={{
-          display: "flex",
-          spaceX: "8px"
-        }}>
-          {[
-            { id: "units", label: t.unitManagement, icon: "📚" },
-            { id: "content", label: t.contentManagement, icon: "📄" },
-            { id: "assignments", label: t.assignmentManagement, icon: "📋" },
-            { id: "quizzes", label: t.quizManagement, icon: "📊" },
-            { id: "users", label: t.userManagement, icon: "👥" }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => navigateToAdminTab(tab.id)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                padding: "12px 20px",
-                borderRadius: "8px",
-                fontWeight: "600",
-                border: "none",
-                cursor: "pointer",
-                background: activeAdminTab === tab.id ? "#4caf50" : "transparent",
-                color: activeAdminTab === tab.id ? "white" : "#666"
-              }}
-            >
-              <span style={{marginRight: "10px"}}>{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Units Management Tab */}
-      {activeAdminTab === "units" && (
-        <div style={{
-          spaceY: "20px"
-        }}>
-          {/* Create New Unit Form */}
-          <div style={{
-            background: "white",
-            borderRadius: "12px",
-            padding: "30px",
-            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
-          }}>
-            <h3 style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#333",
-              marginBottom: "20px",
-              display: "flex",
-              alignItems: "center"
-            }}>
-              <span style={{marginRight: "10px"}}>➕</span>
-              {t.createUnit}
-            </h3>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "30px"
-            }}>
-              <div style={{
-                spaceY: "20px"
-              }}>
-                <div>
-                  <label style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "8px"
-                  }}>
-                    {t.unitCode}
-                  </label>
-                  <input 
-                    type="text" 
-                    value={unitForm.unit} 
-                    onChange={(e) => handleUnitChange("unit", e.target.value)}
-                    placeholder={currentLanguage === "en" ? "e.g., Unit 3.1" : "例如：Unit 3.1"}
-                    style={{
-                      width: "100%",
-                      border: "2px solid #ddd",
-                      borderRadius: "8px",
-                      padding: "12px",
-                      fontSize: "16px"
-                    }}
-                  />
-                </div>
-                <div>
-                  <label style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "8px"
-                  }}>
-                    {t.unitTitle}
-                  </label>
-                  <input 
-                    type="text" 
-                    value={unitForm.title} 
-                    onChange={(e) => handleUnitChange("title", e.target.value)}
-                    placeholder={currentLanguage === "en" ? "e.g., Genetics and Inheritance" : "例如：遗传与继承"}
-                    style={{
-                      width: "100%",
-                      border: "2px solid #ddd",
-                      borderRadius: "8px",
-                      padding: "12px",
-                      fontSize: "16px"
-                    }}
-                  />
-                </div>
-              </div>
-              <div style={{
-                spaceY: "20px"
-              }}>
-                <div>
-                  <label style={{
-                    display: "block",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    color: "#333",
-                    marginBottom: "8px"
-                  }}>
-                    {t.description}
-                  </label>
-                  <textarea 
-                    value={unitForm.description} 
-                    onChange={(e) => handleUnitChange("description", e.target.value)}
-                    rows="5"
-                    placeholder={currentLanguage === "en" ? "Brief description of the unit..." : "单元的简要描述..."}
-                    style={{
-                      width: "100%",
-                      border: "2px solid #ddd",
-                      borderRadius: "8px",
-                      padding: "12px",
-                      fontSize: "16px"
-                    }}
-                  ></textarea>
-                </div>
-              </div>
-            </div>
-            <div style={{
-              marginTop: "30px",
-              display: "flex",
-              spaceX: "20px"
-            }}>
-              <button 
-                onClick={saveUnit}
-                style={{
-                  background: "linear-gradient(135deg, #4caf50, #66bb6a)",
-                  color: "white",
-                  border: "none",
-                  padding: "12px 24px",
-                  borderRadius: "8px",
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  cursor: "pointer"
-                }}
-              >
-                {t.save}
-              </button>
-              <button 
-                onClick={() => setUnitForm({unit: "", title: "", description: ""})}
-                style={{
-                  background: "linear-gradient(135deg, #9e9e9e, #bdbdbd)",
-                  color: "white",
-                  border: "none",
-                  padding: "12px 24px",
-                  borderRadius: "8px",
-                  fontSize: "16px",
-                  fontWeight: "600",
-                  cursor: "pointer"
-                }}
-              >
-                {t.cancel}
-              </button>
-            </div>
-          </div>
-
-          {/* Units List */}
-          <div style={{
-            background: "white",
-            borderRadius: "12px",
-            padding: "30px",
-            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
-          }}>
-            <h3 style={{
-              fontSize: "24px",
-              fontWeight: "700",
-              color: "#333",
-              marginBottom: "20px"
-            }}>
-              {t.units}
-            </h3>
-            <div style={{
-              spaceY: "20px"
-            }}>
-              {content.map(unit => (
-                <div key={unit.unit} style={{
-                  border: "2px solid #eee",
-                  borderRadius: "12px",
-                  padding: "20px",
-                  transition: "border-color 0.3s ease"
-                }}>
-                  <div style={{
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "space-between",
-                    marginBottom: "15px"
-                  }}>
-                    <div>
-                      <h4 style={{
-                        fontSize: "20px",
-                        fontWeight: "700",
-                        color: "#333",
-                        margin: "0"
-                      }}>
-                        {unit.unit}
-                      </h4>
-                      <h5 style={{
-                        fontSize: "18px",
-                        fontWeight: "600",
-                        color: "#333",
-                        margin: "5px 0 0 0"
-                      }}>
-                        {unit.title}
-                      </h5>
-                      {unit.description && (
-                        <p style={{
-                          color: "#666",
-                          margin: "10px 0 0 0"
-                        }}>
-                          {unit.description}
-                        </p>
-                      )}
-                    </div>
-                    <button 
-                      onClick={() => deleteUnit(unit.unit)}
-                      style={{
-                        background: "linear-gradient(135deg, #f44336, #ef5350)",
-                        color: "white",
-                        border: "none",
-                        padding: "8px 16px",
-                        borderRadius: "8px",
-                        fontSize: "14px",
-                        fontWeight: "600",
-                        cursor: "pointer"
-                      }}
-                    >
-                      {t.deleteUnit}
-                    </button>
-                  </div>
-                  
-                  <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr",
-                    gap: "20px",
-                    paddingTop: "15px",
-                    borderTop: "1px solid #eee"
-                  }}>
-                    <div style={{
-                      textAlign: "center",
-                      padding: "15px",
-                      background: "#e3f2fd",
-                      borderRadius: "8px"
-                    }}>
-                      <div style={{
-                        fontSize: "24px",
-                        fontWeight: "700",
-                        color: "#1976d2",
-                        margin: "0"
-                      }}>
-                        {unit.articles.length}
-                      </div>
-                      <div style={{
-                        fontSize: "14px",
-                        color: "#1976d2",
-                        fontWeight: "600",
-                        margin: "5px 0 0 0"
-                      }}>
-                        {t.content}
-                      </div>
-                    </div>
-                    <div style={{
-                      textAlign: "center",
-                      padding: "15px",
-                      background: "#e8f5e8",
-                      borderRadius: "8px"
-                    }}>
-                      <div style={{
-                        fontSize: "24px",
-                        fontWeight: "700",
-                        color: "#388e3c",
-                        margin: "0"
-                      }}>
-                        {unit.exercises.length}
-                      </div>
-                      <div style={{
-                        fontSize: "14px",
-                        color: "#388e3c",
-                        fontWeight: "600",
-                        margin: "5px 0 0 0"
-                      }}>
-                        {t.exercises}
-                      </div>
-                    </div>
-                    <div style={{
-                      textAlign: "center",
-                      padding: "15px",
-                      background: "#f3e5f5",
-                      borderRadius: "8px"
-                    }}>
-                      <div style={{
-                        fontSize: "24px",
-                        fontWeight: "700",
-                        color: "#7b1fa2",
-                        margin: "0"
-                      }}>
-                        {unit.videos.length}
-                      </div>
-                      <div style={{
-                        fontSize: "14px",
-                        color: "#7b1fa2",
-                        fontWeight: "600",
-                        margin: "5px 0 0 0"
-                      }}>
-                        {t.videos}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                    padding: "12px 20px",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    border: "none",
+                    cursor: "pointer",
+                    background: activeAdminTab === tab.id ? "#4caf50" : "transparent",
+                    color: activeAdminTab === tab.id ? "white" : "#666"
+                  }}
+                >
+                  <span style={{marginRight: "10px"}}>{tab.icon}</span>
+                  {tab.label}
+                </button>
               ))}
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  );
 
-  return (
-    <div style={{
-      background: "#e8f5e8",
-      minHeight: "100vh"
-    }}>
-      <Header />
-      {currentPage === "home" && <HomePage />}
-      {currentPage === "login" && <LoginPage />}
-      {currentPage === "signup" && <SignupPage />}
-      {currentPage === "admin-login" && <AdminLoginPage />}
-      {currentPage === "admin" && isAuthenticated && <AdminPanel />}
-    </div>
-  );
-}
+          {/* Units Management Tab */}
+          {activeAdminTab === "units" && (
+            <div style={{
+              spaceY: "20px"
+            }}>
+              {/* Create New Unit Form */}
+              <div style={{
+                background: "white",
+                borderRadius: "12px",
+                padding: "30px",
+                boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+              }}>
+                <h3 style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: "#333",
+                  marginBottom: "20px",
+                  display: "flex",
+                  alignItems: "center"
+                }}>
+                  <span style={{marginRight: "10px"}}>➕</span>
+                  {t.createUnit}
+                </h3>
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "30px"
+                }}>
+                  <div style={{
+                    spaceY: "20px"
+                  }}>
+                    <div>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px"
+                      }}>
+                        {t.unitCode}
+                      </label>
+                      <input 
+                        type="text" 
+                        value={unitForm.unit} 
+                        onChange={(e) => handleUnitChange("unit", e.target.value)}
+                        placeholder={currentLanguage === "en" ? "e.g., Unit 3.1" : "例如：Unit 3.1"}
+                        style={{
+                          width: "100%",
+                          border: "2px solid #ddd",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          fontSize: "16px"
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px"
+                      }}>
+                        {t.unitTitle}
+                      </label>
+                      <input 
+                        type="text" 
+                        value={unitForm.title} 
+                        onChange={(e) => handleUnitChange("title", e.target.value)}
+                        placeholder={currentLanguage === "en" ? "e.g., Genetics and Inheritance" : "例如：遗传与继承"}
+                        style={{
+                          width: "100%",
+                          border: "2px solid #ddd",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          fontSize: "16px"
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div style={{
+                    spaceY: "20px"
+                  }}>
+                    <div>
+                      <label style={{
+                        display: "block",
+                        fontSize: "14px",
+                        fontWeight: "500",
+                        color: "#333",
+                        marginBottom: "8px"
+                      }}>
+                        {t.description}
+                      </label>
+                      <textarea 
+                        value={unitForm.description} 
+                        onChange={(e) => handleUnitChange("description", e.target.value)}
+                        rows="5"
+                        placeholder={currentLanguage === "en" ? "Brief description of the unit..." : "单元的简要描述..."}
+                        style={{
+                          width: "100%",
+                          border: "2px solid #ddd",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          fontSize: "16px"
+                        }}
+                      ></textarea>
+                    </div>
+                  </div>
+                </div>
+                <div style={{
+                  marginTop: "30px",
+                  display: "flex",
+                  spaceX: "20px"
+                }}>
+                  <button 
+                    onClick={saveUnit}
+                    style={{
+                      background: "linear-gradient(135deg, #4caf50, #66bb6a)",
+                      color: "white",
+                      border: "none",
+                      padding: "12px 24px",
+                      borderRadius: "8px",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {t.save}
+                  </button>
+                  <button 
+                    onClick={() => setUnitForm({unit: "", title: "", description: ""})}
+                    style={{
+                      background: "linear-gradient(135deg, #9e9e9e, #bdbdbd)",
+                      color: "white",
+                      border: "none",
+                      padding: "12px 24px",
+                      borderRadius: "8px",
+                      fontSize: "16px",
+                      fontWeight: "600",
+                      cursor: "pointer"
+                    }}
+                  >
+                    {t.cancel}
+                  </button>
+                </div>
+              </div>
+
+              {/* Units List */}
+              <div style={{
+                background: "white",
+                borderRadius: "12px",
+                padding: "30px",
+                boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)"
+              }}>
+                <h3 style={{
+                  fontSize: "24px",
+                  fontWeight: "700",
+                  color: "#333",
+                  marginBottom: "20px"
+                }}>
+                  {t.units}
+                </h3>
+                <div style={{
+                  spaceY: "20px"
+                }}>
+                  {content.map(unit => (
+                    <div key={unit.unit} style={{
+                      border: "2px solid #eee",
+                      borderRadius: "12px",
+                      padding: "20px",
+                      transition: "border-color 0.3s ease"
+                    }}>
+                      <div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginBottom: "15px"
+                      }}>
+                        <div>
+                          <h4 style={{
+                            fontSize: "20px",
+                            fontWeight: "700",
+                            color: "#333",
+                            margin: "0"
+                          }}>
+                            {unit.unit}
+                          </h4>
+                          <h5 style={{
+                            fontSize: "18px",
+                            fontWeight: "600",
+                            color: "#333",
+                            margin: "5px 0 0 0"
+                          }}>
+                            {unit.title}
+                          </h5>
+                          {unit.description && (
+                            <p style={{
+                              color: "#666",
+                              margin: "10px 0 0 0"
+                            }}>
+                              {unit.description}
+                            </p>
+                          )}
+                        </div>
+                        <button 
+                          onClick={() => deleteUnit(unit.unit)}
+                          style={{
+                            background: "linear-gradient(135deg, #f44336, #ef5350)",
+                            color: "white",
+                            border: "none",
+                            padding: "8px 16px",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            fontWeight: "600",
+                            cursor: "pointer"
+                          }}
+                        >
+                          {t.deleteUnit}
+                        </button>
+                      </div>
+                      
+                      <div style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr 1fr",
+                        gap: "20px",
+                        paddingTop: "15px",
+                        borderTop: "1px solid #eee"
+                      }}>
+                        <div style={{
+                          textAlign: "center",
+                          padding: "15px",
+                          background: "#e3f2fd",
+                          borderRadius: "8px"
+                        }}>
+                          <div style={{
+                            fontSize: "24px",
+                            fontWeight: "700",
+                            color: "#1976d2",
+                            margin: "0"
+                          }}>
+                            {unit.articles.length}
+                          </div>
+                          <div style={{
+                            fontSize: "14px",
+                            color: "#1976d2",
+                            fontWeight: "600",
+                            margin: "5px 0 0 0"
+                          }}>
+                            {t.content}
+                          </div>
+                        </div>
+                        <div style={{
+                          textAlign: "center",
+                          padding: "15px",
+                          background: "#e8f5e8",
+                          borderRadius: "8px"
+                        }}>
+                          <div style={{
+                            fontSize: "24px",
+                            fontWeight: "700",
+                            color: "#388e3c",
+                            margin: "0"
+                          }}>
+                            {unit.exercises.length}
+                          </div>
+                          <div style={{
+                            fontSize: "14px",
+                            color: "#388e3c",
+                            fontWeight: "600",
+                            margin: "5px 0 0 0"
+                          }}>
+                            {t.exercises}
+                          </div>
+                        </div>
+                        <div style={{
+                          textAlign: "center",
+                          padding: "15px",
+                          background: "#f3e5f5",
+                          borderRadius: "8px"
+                        }}>
+                          <div style={{
+                            fontSize: "24px",
+                            fontWeight: "700",
+                            color: "#7b1fa2",
+                            margin: "0"
+                          }}>
+                            {unit.videos.length}
+                          </div>
+                          <div style={{
+                            fontSize: "14px",
+                            color: "#7b1fa2",
+                            fontWeight: "600",
+                            margin: "5px 0 0 0"
+                          }}>
+                            {t.videos}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+
+      return (
+        <div style={{
+          background: "#e8f5e8",
+          minHeight: "100vh"
+        }}>
+          <Header />
+          {currentPage === "home" && <HomePage />}
+          {currentPage === "login" && <LoginPage />}
+          {currentPage === "signup" && <SignupPage />}
+          {currentPage === "admin-login" && <AdminLoginPage />}
+          {currentPage === "admin" && isAuthenticated && <AdminPanel />}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

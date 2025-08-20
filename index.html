@@ -130,7 +130,7 @@
       const [activeAdminTab, setActiveAdminTab] = useState("units");
       const [navigationHistory, setNavigationHistory] = useState(["home"]);
       const [user, setUser] = useState(null);
-      const [loginForm, setLoginForm] = useState({ username: "", password: "", role: "student" });
+      const [loginForm, setLoginForm] = useState({ username: "", password: "" });
       const [signupForm, setSignupForm] = useState({ 
         name: "", 
         email: "", 
@@ -254,38 +254,8 @@
         }
       ]);
 
-      // User management
-      const [users, setUsers] = useState([
-        {
-          id: 1,
-          username: "teacher1",
-          password: "password1",
-          role: "teacher",
-          name: "Teacher One",
-          email: "teacher1@example.com",
-          class: "Grade 7",
-          lastActive: "2024-01-15",
-          emailVerified: true,
-          verificationCode: "123456"
-        },
-        {
-          id: 2,
-          username: "student1",
-          password: "password1",
-          role: "student",
-          name: "Student One",
-          email: "student1@example.com",
-          class: "Grade 7",
-          lastActive: "2024-01-15",
-          progress: {
-            completedUnits: 2,
-            quizAverage: 85,
-            assignmentsCompleted: 2
-          },
-          emailVerified: true,
-          verificationCode: "123456"
-        }
-      ]);
+      // User management - starts empty, users will register
+      const [users, setUsers] = useState([]);
 
       // Language translations
       const translations = {
@@ -378,7 +348,11 @@
           continue: "Continue",
           verificationInProgress: "Verifying...",
           signupSuccess: "Registration Complete!",
-          signupSuccessDesc: "Your account has been created. Please verify your email to login."
+          signupSuccessDesc: "Your account has been created. Please verify your email to login.",
+          dontHaveAccount: "Don't have an account?",
+          alreadyHaveAccount: "Already have an account?",
+          loginWithCredentials: "Login with your username and password",
+          enterYourCredentials: "Enter your credentials to access your account"
         },
         zh: {
           title: "CWA中学生物学",
@@ -469,7 +443,11 @@
           continue: "继续",
           verificationInProgress: "正在验证...",
           signupSuccess: "注册完成！",
-          signupSuccessDesc: "您的账户已创建。请验证邮箱后登录。"
+          signupSuccessDesc: "您的账户已创建。请验证邮箱后登录。",
+          dontHaveAccount: "还没有账户？",
+          alreadyHaveAccount: "已有账户？",
+          loginWithCredentials: "使用您的用户名和密码登录",
+          enterYourCredentials: "输入您的凭据以访问您的账户"
         }
       };
 
@@ -502,7 +480,7 @@
           setUser(foundUser);
           setCurrentPage("home");
           setNavigationHistory(["home"]);
-          setLoginForm({ username: "", password: "", role: "student" });
+          setLoginForm({ username: "", password: "" });
         } else {
           alert("Invalid username or password");
         }
@@ -793,173 +771,144 @@
           background: "#e8f5e8",
           padding: "20px"
         }}>
+        <div style={{
+          background: "white",
+          borderRadius: "12px",
+          padding: "40px",
+          width: "100%",
+          maxWidth: "400px",
+          boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
+        }}>
           <div style={{
-            background: "white",
-            borderRadius: "12px",
-            padding: "40px",
-            width: "100%",
-            maxWidth: "400px",
-            boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
+            textAlign: "center",
+            marginBottom: "30px"
           }}>
             <div style={{
-              textAlign: "center",
-              marginBottom: "30px"
+              fontSize: "60px",
+              marginBottom: "20px"
             }}>
-              <div style={{
-                fontSize: "60px",
-                marginBottom: "20px"
-              }}>
-                👤
-              </div>
-              <h2 style={{
-                fontSize: "28px",
-                fontWeight: "700",
-                color: "#333",
-                margin: "0"
-              }}>
-                {t.login}
-              </h2>
-              <p style={{
-                color: "#666",
-                marginTop: "10px"
-              }}>
-                {t.loginToContinue}
-              </p>
+              👤
             </div>
-            
-            <form onSubmit={handleLogin} style={{
-              spaceY: "20px"
+            <h2 style={{
+              fontSize: "28px",
+              fontWeight: "700",
+              color: "#333",
+              margin: "0"
             }}>
-              <div style={{
-                marginBottom: "20px"
+              {t.login}
+            </h2>
+            <p style={{
+              color: "#666",
+              marginTop: "10px"
+            }}>
+              {t.enterYourCredentials}
+            </p>
+          </div>
+          
+          <form onSubmit={handleLogin} style={{
+            spaceY: "20px"
+          }}>
+            <div style={{
+              marginBottom: "20px"
+            }}>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#333",
+                marginBottom: "8px"
               }}>
-                <label style={{
-                  display: "block",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  color: "#333",
-                  marginBottom: "8px"
-                }}>
-                  {t.username}
-                </label>
-                <input
-                  type="text"
-                  value={loginForm.username}
-                  onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
-                  style={{
-                    width: "100%",
-                    border: "2px solid #ddd",
-                    borderRadius: "8px",
-                    padding: "12px",
-                    fontSize: "16px",
-                    outline: "none"
-                  }}
-                  placeholder="Enter username"
-                  required
-                />
-              </div>
-              
-              <div style={{
-                marginBottom: "20px"
-              }}>
-                <label style={{
-                  display: "block",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  color: "#333",
-                  marginBottom: "8px"
-                }}>
-                  {t.password}
-                </label>
-                <input
-                  type="password"
-                  value={loginForm.password}
-                  onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                  style={{
-                    width: "100%",
-                    border: "2px solid #ddd",
-                    borderRadius: "8px",
-                    padding: "12px",
-                    fontSize: "16px",
-                    outline: "none"
-                  }}
-                  placeholder="Enter password"
-                  required
-                />
-              </div>
-              
-              <div style={{
-                marginBottom: "20px"
-              }}>
-                <label style={{
-                  display: "block",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  color: "#333",
-                  marginBottom: "8px"
-                }}>
-                  {t.role}
-                </label>
-                <select
-                  value={loginForm.role}
-                  onChange={(e) => setLoginForm({...loginForm, role: e.target.value})}
-                  style={{
-                    width: "100%",
-                    border: "2px solid #ddd",
-                    borderRadius: "8px",
-                    padding: "12px",
-                    fontSize: "16px",
-                    outline: "none"
-                  }}
-                >
-                  <option value="student">{t.student}</option>
-                  <option value="teacher">{t.teacher}</option>
-                </select>
-              </div>
-              
-              <button
-                type="submit"
+                {t.username}
+              </label>
+              <input
+                type="text"
+                value={loginForm.username}
+                onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
                 style={{
                   width: "100%",
-                  background: "linear-gradient(135deg, #4caf50, #66bb6a)",
-                  color: "white",
-                  border: "none",
-                  padding: "12px",
+                  border: "2px solid #ddd",
                   borderRadius: "8px",
+                  padding: "12px",
                   fontSize: "16px",
-                  fontWeight: "600",
+                  outline: "none"
+                }}
+                placeholder="Enter your username"
+                required
+              />
+            </div>
+            
+            <div style={{
+              marginBottom: "20px"
+            }}>
+              <label style={{
+                display: "block",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "#333",
+                marginBottom: "8px"
+              }}>
+                {t.password}
+              </label>
+              <input
+                type="password"
+                value={loginForm.password}
+                onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                style={{
+                  width: "100%",
+                  border: "2px solid #ddd",
+                  borderRadius: "8px",
+                  padding: "12px",
+                  fontSize: "16px",
+                  outline: "none"
+                }}
+                placeholder="Enter your password"
+                required
+              />
+            </div>
+            
+            <button
+              type="submit"
+              style={{
+                width: "100%",
+                background: "linear-gradient(135deg, #4caf50, #66bb6a)",
+                color: "white",
+                border: "none",
+                padding: "12px",
+                borderRadius: "8px",
+                fontSize: "16px",
+                fontWeight: "600",
+                cursor: "pointer"
+              }}
+            >
+              {t.login}
+            </button>
+          </form>
+          
+          <div style={{
+            textAlign: "center",
+            marginTop: "20px"
+          }}>
+            <p style={{
+              color: "#666",
+              fontSize: "14px"
+            }}>
+              {t.dontHaveAccount}{" "}
+              <button 
+                onClick={() => navigateTo("signup")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#2196f3",
+                  fontWeight: "500",
                   cursor: "pointer"
                 }}
               >
-                {t.login}
+                {t.signup}
               </button>
-            </form>
-            
-            <div style={{
-              textAlign: "center",
-              marginTop: "20px"
-            }}>
-              <p style={{
-                color: "#666",
-                fontSize: "14px"
-              }}>
-                {t.dontHaveAccount}{" "}
-                <button 
-                  onClick={() => navigateTo("signup")}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#2196f3",
-                    fontWeight: "500",
-                    cursor: "pointer"
-                  }}
-                >
-                  {t.signup}
-                </button>
-              </p>
-            </div>
+            </p>
           </div>
         </div>
+      </div>
       );
 
       // Signup Page

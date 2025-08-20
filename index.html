@@ -121,7 +121,7 @@
   
   <script type="text/babel">
     // Complete CWA Secondary Biology Website
-    const { useState, useEffect } = React;
+    const { useState, useEffect, useRef } = React;
 
     function App() {
       const [currentPage, setCurrentPage] = useState("home");
@@ -130,16 +130,42 @@
       const [activeAdminTab, setActiveAdminTab] = useState("units");
       const [navigationHistory, setNavigationHistory] = useState(["home"]);
       const [user, setUser] = useState(null);
-      const [loginForm, setLoginForm] = useState({ username: "", password: "" });
-      const [signupForm, setSignupForm] = useState({ 
-        name: "", 
-        email: "", 
-        username: "", 
-        password: "", 
-        confirmPassword: "", 
-        role: "student", 
-        class: "" 
+      
+      // Initialize with empty users array - no pre-existing accounts
+      const [users, setUsers] = useState([]);
+      
+      // Login form state with refs to maintain focus
+      const loginFormRef = useRef({
+        username: "",
+        password: ""
       });
+      
+      const [loginFormState, setLoginFormState] = useState({
+        username: "",
+        password: ""
+      });
+      
+      // Signup form state with refs to maintain focus
+      const signupFormRef = useRef({
+        name: "",
+        email: "",
+        username: "",
+        password: "",
+        confirmPassword: "",
+        role: "student",
+        class: ""
+      });
+      
+      const [signupFormState, setSignupFormState] = useState({
+        name: "",
+        email: "",
+        username: "",
+        password: "",
+        confirmPassword: "",
+        role: "student",
+        class: ""
+      });
+      
       const [signupStep, setSignupStep] = useState(1); // 1: form, 2: verification
       const [verificationCode, setVerificationCode] = useState("");
       const [isVerifying, setIsVerifying] = useState(false);
@@ -253,9 +279,6 @@
           ],
         }
       ]);
-
-      // User management - starts empty, users will register
-      const [users, setUsers] = useState([]);
 
       // Language translations
       const translations = {
@@ -470,7 +493,7 @@
       // User login
       const handleLogin = (e) => {
         e.preventDefault();
-        const foundUser = users.find(u => u.username === loginForm.username && u.password === loginForm.password);
+        const foundUser = users.find(u => u.username === loginFormRef.current.username && u.password === loginFormRef.current.password);
         
         if (foundUser) {
           if (!foundUser.emailVerified) {
@@ -480,7 +503,15 @@
           setUser(foundUser);
           setCurrentPage("home");
           setNavigationHistory(["home"]);
-          setLoginForm({ username: "", password: "" });
+          // Reset login form
+          loginFormRef.current = {
+            username: "",
+            password: ""
+          };
+          setLoginFormState({
+            username: "",
+            password: ""
+          });
         } else {
           alert("Invalid username or password");
         }
@@ -535,7 +566,10 @@
       });
 
       const handleUnitChange = (field, value) => {
-        setUnitForm({ ...unitForm, [field]: value });
+        setUnitForm(prev => ({
+          ...prev,
+          [field]: value
+        }));
       };
 
       const saveUnit = () => {
@@ -562,6 +596,7 @@
         
         setContent(prev => [...prev, newUnit]);
 
+        // Reset form
         setUnitForm({
           unit: "",
           title: "",
@@ -589,6 +624,25 @@
           setNavigationHistory(["home", "admin"]);
         }
       }, []);
+
+      // Fix for input focus issue - optimized state updates
+      const updateLoginForm = (field, value) => {
+        // Update both ref and state
+        loginFormRef.current[field] = value;
+        setLoginFormState(prev => ({
+          ...prev,
+          [field]: value
+        }));
+      };
+
+      const updateSignupForm = (field, value) => {
+        // Update both ref and state
+        signupFormRef.current[field] = value;
+        setSignupFormState(prev => ({
+          ...prev,
+          [field]: value
+        }));
+      };
 
       // Header Component with Navigation
       const Header = () => (
@@ -771,144 +825,144 @@
           background: "#e8f5e8",
           padding: "20px"
         }}>
-        <div style={{
-          background: "white",
-          borderRadius: "12px",
-          padding: "40px",
-          width: "100%",
-          maxWidth: "400px",
-          boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
-        }}>
           <div style={{
-            textAlign: "center",
-            marginBottom: "30px"
+            background: "white",
+            borderRadius: "12px",
+            padding: "40px",
+            width: "100%",
+            maxWidth: "400px",
+            boxShadow: "0 8px 25px rgba(0, 0, 0, 0.1)"
           }}>
             <div style={{
-              fontSize: "60px",
-              marginBottom: "20px"
+              textAlign: "center",
+              marginBottom: "30px"
             }}>
-              👤
-            </div>
-            <h2 style={{
-              fontSize: "28px",
-              fontWeight: "700",
-              color: "#333",
-              margin: "0"
-            }}>
-              {t.login}
-            </h2>
-            <p style={{
-              color: "#666",
-              marginTop: "10px"
-            }}>
-              {t.enterYourCredentials}
-            </p>
-          </div>
-          
-          <form onSubmit={handleLogin} style={{
-            spaceY: "20px"
-          }}>
-            <div style={{
-              marginBottom: "20px"
-            }}>
-              <label style={{
-                display: "block",
-                fontSize: "14px",
-                fontWeight: "500",
-                color: "#333",
-                marginBottom: "8px"
+              <div style={{
+                fontSize: "60px",
+                marginBottom: "20px"
               }}>
-                {t.username}
-              </label>
-              <input
-                type="text"
-                value={loginForm.username}
-                onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
-                style={{
-                  width: "100%",
-                  border: "2px solid #ddd",
-                  borderRadius: "8px",
-                  padding: "12px",
-                  fontSize: "16px",
-                  outline: "none"
-                }}
-                placeholder="Enter your username"
-                required
-              />
+                👤
+              </div>
+              <h2 style={{
+                fontSize: "28px",
+                fontWeight: "700",
+                color: "#333",
+                margin: "0"
+              }}>
+                {t.login}
+              </h2>
+              <p style={{
+                color: "#666",
+                marginTop: "10px"
+              }}>
+                {t.enterYourCredentials}
+              </p>
             </div>
             
-            <div style={{
-              marginBottom: "20px"
+            <form onSubmit={handleLogin} style={{
+              spaceY: "20px"
             }}>
-              <label style={{
-                display: "block",
-                fontSize: "14px",
-                fontWeight: "500",
-                color: "#333",
-                marginBottom: "8px"
+              <div style={{
+                marginBottom: "20px"
               }}>
-                {t.password}
-              </label>
-              <input
-                type="password"
-                value={loginForm.password}
-                onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
-                style={{
-                  width: "100%",
-                  border: "2px solid #ddd",
-                  borderRadius: "8px",
-                  padding: "12px",
-                  fontSize: "16px",
-                  outline: "none"
-                }}
-                placeholder="Enter your password"
-                required
-              />
-            </div>
-            
-            <button
-              type="submit"
-              style={{
-                width: "100%",
-                background: "linear-gradient(135deg, #4caf50, #66bb6a)",
-                color: "white",
-                border: "none",
-                padding: "12px",
-                borderRadius: "8px",
-                fontSize: "16px",
-                fontWeight: "600",
-                cursor: "pointer"
-              }}
-            >
-              {t.login}
-            </button>
-          </form>
-          
-          <div style={{
-            textAlign: "center",
-            marginTop: "20px"
-          }}>
-            <p style={{
-              color: "#666",
-              fontSize: "14px"
-            }}>
-              {t.dontHaveAccount}{" "}
-              <button 
-                onClick={() => navigateTo("signup")}
-                style={{
-                  background: "none",
-                  border: "none",
-                  color: "#2196f3",
+                <label style={{
+                  display: "block",
+                  fontSize: "14px",
                   fontWeight: "500",
+                  color: "#333",
+                  marginBottom: "8px"
+                }}>
+                  {t.username}
+                </label>
+                <input
+                  type="text"
+                  value={loginFormState.username}
+                  onChange={(e) => updateLoginForm("username", e.target.value)}
+                  style={{
+                    width: "100%",
+                    border: "2px solid #ddd",
+                    borderRadius: "8px",
+                    padding: "12px",
+                    fontSize: "16px",
+                    outline: "none"
+                  }}
+                  placeholder="Enter your username"
+                  required
+                />
+              </div>
+              
+              <div style={{
+                marginBottom: "20px"
+              }}>
+                <label style={{
+                  display: "block",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  color: "#333",
+                  marginBottom: "8px"
+                }}>
+                  {t.password}
+                </label>
+                <input
+                  type="password"
+                  value={loginFormState.password}
+                  onChange={(e) => updateLoginForm("password", e.target.value)}
+                  style={{
+                    width: "100%",
+                    border: "2px solid #ddd",
+                    borderRadius: "8px",
+                    padding: "12px",
+                    fontSize: "16px",
+                    outline: "none"
+                  }}
+                  placeholder="Enter your password"
+                  required
+                />
+              </div>
+              
+              <button
+                type="submit"
+                style={{
+                  width: "100%",
+                  background: "linear-gradient(135deg, #4caf50, #66bb6a)",
+                  color: "white",
+                  border: "none",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  fontSize: "16px",
+                  fontWeight: "600",
                   cursor: "pointer"
                 }}
               >
-                {t.signup}
+                {t.login}
               </button>
-            </p>
+            </form>
+            
+            <div style={{
+              textAlign: "center",
+              marginTop: "20px"
+            }}>
+              <p style={{
+                color: "#666",
+                fontSize: "14px"
+              }}>
+                {t.dontHaveAccount}{" "}
+                <button 
+                  onClick={() => navigateTo("signup")}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#2196f3",
+                    fontWeight: "500",
+                    cursor: "pointer"
+                  }}
+                >
+                  {t.signup}
+                </button>
+              </p>
+            </div>
           </div>
         </div>
-      </div>
       );
 
       // Signup Page
@@ -920,37 +974,37 @@
         const validateForm = () => {
           const newErrors = {};
           
-          if (!signupForm.name.trim()) {
+          if (!signupFormState.name.trim()) {
             newErrors.name = t.fieldRequired;
           }
           
-          if (!signupForm.email.trim()) {
+          if (!signupFormState.email.trim()) {
             newErrors.email = t.fieldRequired;
-          } else if (!/\S+@\S+\.\S+/.test(signupForm.email)) {
+          } else if (!/\S+@\S+\.\S+/.test(signupFormState.email)) {
             newErrors.email = t.invalidEmail;
-          } else if (users.some(u => u.email === signupForm.email)) {
+          } else if (users.some(u => u.email === signupFormState.email)) {
             newErrors.email = t.emailExists;
           }
           
-          if (!signupForm.username.trim()) {
+          if (!signupFormState.username.trim()) {
             newErrors.username = t.fieldRequired;
-          } else if (users.some(u => u.username === signupForm.username)) {
+          } else if (users.some(u => u.username === signupFormState.username)) {
             newErrors.username = t.usernameExists;
           }
           
-          if (!signupForm.password) {
+          if (!signupFormState.password) {
             newErrors.password = t.fieldRequired;
-          } else if (signupForm.password.length < 6) {
+          } else if (signupFormState.password.length < 6) {
             newErrors.password = t.passwordTooShort;
           }
           
-          if (!signupForm.confirmPassword) {
+          if (!signupFormState.confirmPassword) {
             newErrors.confirmPassword = t.fieldRequired;
-          } else if (signupForm.password !== signupForm.confirmPassword) {
+          } else if (signupFormState.password !== signupFormState.confirmPassword) {
             newErrors.confirmPassword = t.passwordsDontMatch;
           }
           
-          if (!signupForm.class.trim()) {
+          if (!signupFormState.class.trim()) {
             newErrors.class = t.fieldRequired;
           }
           
@@ -969,11 +1023,11 @@
             // Create new user
             const newUser = {
               id: users.length + 1,
-              ...signupForm,
+              ...signupFormState,
               lastActive: new Date().toISOString().split('T')[0],
               emailVerified: false,
               verificationCode: code,
-              progress: signupForm.role === "student" ? {
+              progress: signupFormState.role === "student" ? {
                 completedUnits: 0,
                 quizAverage: 0,
                 assignmentsCompleted: 0
@@ -981,7 +1035,7 @@
             };
             
             setUsers(prev => [...prev, newUser]);
-            alert(`${t.emailSent}\n\n${t.codeSent} ${signupForm.email}\n\n${t.pleaseCheck}`);
+            alert(`${t.emailSent}\n\n${t.codeSent} ${signupFormState.email}\n\n${t.pleaseCheck}`);
           }
         };
 
@@ -990,12 +1044,12 @@
           setIsVerifying(true);
           
           // Find user by email
-          const userToVerify = users.find(u => u.email === signupForm.email);
+          const userToVerify = users.find(u => u.email === signupFormState.email);
           
           if (userToVerify && userToVerify.verificationCode === verificationCode) {
             // Update user to verified
             setUsers(prev => prev.map(u => 
-              u.email === signupForm.email 
+              u.email === signupFormState.email 
                 ? { ...u, emailVerified: true } 
                 : u
             ));
@@ -1005,7 +1059,17 @@
               alert(t.verificationSuccess);
               setCurrentPage("login");
               setSignupStep(1);
-              setSignupForm({ 
+              // Reset forms
+              signupFormRef.current = { 
+                name: "", 
+                email: "", 
+                username: "", 
+                password: "", 
+                confirmPassword: "", 
+                role: "student", 
+                class: "" 
+              };
+              setSignupFormState({ 
                 name: "", 
                 email: "", 
                 username: "", 
@@ -1025,13 +1089,13 @@
         };
 
         const resendVerificationCode = () => {
-          const userToResend = users.find(u => u.email === signupForm.email);
+          const userToResend = users.find(u => u.email === signupFormState.email);
           if (userToResend) {
             // Generate new code
             const newCode = Math.floor(100000 + Math.random() * 900000).toString();
             
             setUsers(prev => prev.map(u => 
-              u.email === signupForm.email 
+              u.email === signupFormState.email 
                 ? { ...u, verificationCode: newCode } 
                 : u
             ));
@@ -1077,7 +1141,7 @@
                       color: "#333",
                       margin: "0"
                     }}>
-                      {signupForm.role === "student" ? t.signupAsStudent : t.signupAsTeacher}
+                      {signupFormState.role === "student" ? t.signupAsStudent : t.signupAsTeacher}
                     </h2>
                     <p style={{
                       color: "#666",
@@ -1097,11 +1161,11 @@
                     }}>
                       <button 
                         type="button"
-                        onClick={() => setSignupForm({...signupForm, role: "student"})}
+                        onClick={() => updateSignupForm("role", "student")}
                         style={{
                           flex: 1,
-                          background: signupForm.role === "student" ? "#2196f3" : "#e0e0e0",
-                          color: signupForm.role === "student" ? "white" : "#333",
+                          background: signupFormState.role === "student" ? "#2196f3" : "#e0e0e0",
+                          color: signupFormState.role === "student" ? "white" : "#333",
                           border: "none",
                           padding: "10px",
                           borderRadius: "8px",
@@ -1113,11 +1177,11 @@
                       </button>
                       <button 
                         type="button"
-                        onClick={() => setSignupForm({...signupForm, role: "teacher"})}
+                        onClick={() => updateSignupForm("role", "teacher")}
                         style={{
                           flex: 1,
-                          background: signupForm.role === "teacher" ? "#4caf50" : "#e0e0e0",
-                          color: signupForm.role === "teacher" ? "white" : "#333",
+                          background: signupFormState.role === "teacher" ? "#4caf50" : "#e0e0e0",
+                          color: signupFormState.role === "teacher" ? "white" : "#333",
                           border: "none",
                           padding: "10px",
                           borderRadius: "8px",
@@ -1143,8 +1207,8 @@
                       </label>
                       <input
                         type="text"
-                        value={signupForm.name}
-                        onChange={(e) => setSignupForm({...signupForm, name: e.target.value})}
+                        value={signupFormState.name}
+                        onChange={(e) => updateSignupForm("name", e.target.value)}
                         style={{
                           width: "100%",
                           border: "2px solid " + (errors.name ? "#f44336" : "#ddd"),
@@ -1180,8 +1244,8 @@
                       </label>
                       <input
                         type="email"
-                        value={signupForm.email}
-                        onChange={(e) => setSignupForm({...signupForm, email: e.target.value})}
+                        value={signupFormState.email}
+                        onChange={(e) => updateSignupForm("email", e.target.value)}
                         style={{
                           width: "100%",
                           border: "2px solid " + (errors.email ? "#f44336" : "#ddd"),
@@ -1217,8 +1281,8 @@
                       </label>
                       <input
                         type="text"
-                        value={signupForm.username}
-                        onChange={(e) => setSignupForm({...signupForm, username: e.target.value})}
+                        value={signupFormState.username}
+                        onChange={(e) => updateSignupForm("username", e.target.value)}
                         style={{
                           width: "100%",
                           border: "2px solid " + (errors.username ? "#f44336" : "#ddd"),
@@ -1257,8 +1321,8 @@
                       }}>
                         <input
                           type={showPassword ? "text" : "password"}
-                          value={signupForm.password}
-                          onChange={(e) => setSignupForm({...signupForm, password: e.target.value})}
+                          value={signupFormState.password}
+                          onChange={(e) => updateSignupForm("password", e.target.value)}
                           style={{
                             width: "100%",
                             border: "2px solid " + (errors.password ? "#f44336" : "#ddd"),
@@ -1315,8 +1379,8 @@
                       }}>
                         <input
                           type={showConfirmPassword ? "text" : "password"}
-                          value={signupForm.confirmPassword}
-                          onChange={(e) => setSignupForm({...signupForm, confirmPassword: e.target.value})}
+                          value={signupFormState.confirmPassword}
+                          onChange={(e) => updateSignupForm("confirmPassword", e.target.value)}
                           style={{
                             width: "100%",
                             border: "2px solid " + (errors.confirmPassword ? "#f44336" : "#ddd"),
@@ -1366,12 +1430,12 @@
                         color: "#333",
                         marginBottom: "8px"
                       }}>
-                        {signupForm.role === "student" ? t.studentClass : t.teacherClass}
+                        {signupFormState.role === "student" ? t.studentClass : t.teacherClass}
                       </label>
                       <input
                         type="text"
-                        value={signupForm.class}
-                        onChange={(e) => setSignupForm({...signupForm, class: e.target.value})}
+                        value={signupFormState.class}
+                        onChange={(e) => updateSignupForm("class", e.target.value)}
                         style={{
                           width: "100%",
                           border: "2px solid " + (errors.class ? "#f44336" : "#ddd"),
@@ -1380,7 +1444,7 @@
                           fontSize: "16px",
                           outline: "none"
                         }}
-                        placeholder={signupForm.role === "student" ? "e.g., Grade 7" : "e.g., Grade 7-9"}
+                        placeholder={signupFormState.role === "student" ? "e.g., Grade 7" : "e.g., Grade 7-9"}
                       />
                       {errors.class && (
                         <p style={{
@@ -1475,7 +1539,7 @@
                         fontSize: "14px",
                         marginBottom: "15px"
                       }}>
-                        {t.codeSent} <strong>{signupForm.email}</strong>
+                        {t.codeSent} <strong>{signupFormState.email}</strong>
                       </p>
                       <p style={{
                         color: "#666",

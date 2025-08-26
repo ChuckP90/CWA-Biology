@@ -567,6 +567,108 @@
             height: 20px;
             fill: currentColor;
         }
+        
+        /* Back button */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .back-button svg {
+            width: 24px;
+            height: 24px;
+            fill: #059669;
+        }
+        
+        /* Menu button */
+        .menu-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        
+        .menu-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .menu-button svg {
+            width: 24px;
+            height: 24px;
+            fill: #059669;
+        }
+        
+        /* Menu overlay */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100vh;
+            background-color: white;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 101;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            padding: 2rem;
+        }
+        
+        .menu-overlay.active {
+            transform: translateX(0);
+        }
+        
+        .menu-item {
+            padding: 1rem 0;
+            border-bottom: 1px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .menu-item:hover {
+            color: #059669;
+            transform: translateX(5px);
+        }
+        
+        .menu-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen">
@@ -858,6 +960,7 @@
                 this.editingOptionIndex = -1;
                 this.currentSlide = 0;
                 this.galleryInterval = null;
+                this.menuOpen = false;
                 
                 this.units = [
                     {
@@ -1741,10 +1844,19 @@
                 
                 let html = '';
                 
-                // Header
+                // Header with back button and menu button
                 html += `
                     <header class="bg-gradient-to-r from-green-600 to-blue-600 text-white shadow-lg sticky top-0 z-50">
                         <div class="container mx-auto px-4 py-4 flex flex-wrap items-center justify-between">
+                            <!-- Back Button -->
+                            ${this.currentPage !== 'home' ? `
+                                <button onclick="app.navigateTo('home')" class="back-button">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                </button>
+                            ` : ''}
+                            
                             <div class="flex items-center space-x-2">
                                 <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1808,9 +1920,48 @@
                                         ${this.t({ en: "Admin", zh: "管理员" })}
                                     </button>
                                 ` : ''}
+                                
+                                <!-- Menu Button -->
+                                <button onclick="app.toggleMenu()" class="menu-button">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                                    </svg>
+                                </button>
                             </div>
                         </div>
                     </header>
+                    
+                    <!-- Menu Overlay -->
+                    <div id="menuOverlay" class="menu-overlay">
+                        <button class="menu-close" onclick="app.toggleMenu()">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <div class="menu-item" onclick="app.navigateTo('home')">
+                            ${this.t({ en: "Home", zh: "首页" })}
+                        </div>
+                        <div class="menu-item" onclick="app.navigateTo('library')">
+                            ${this.t({ en: "Library", zh: "资料库" })}
+                        </div>
+                        <div class="menu-item" onclick="app.navigateTo('quizzes')">
+                            ${this.t({ en: "Quizzes", zh: "测验" })}
+                        </div>
+                        <div class="menu-item" onclick="app.navigateTo('worksheets')">
+                            ${this.t({ en: "Worksheets", zh: "练习题" })}
+                        </div>
+                        <div class="menu-item" onclick="app.navigateTo('classes')">
+                            ${this.t({ en: "Classes", zh: "班级" })}
+                        </div>
+                        ${this.user ? `
+                            <div class="menu-item" onclick="app.navigateTo('admin')">
+                                ${this.t({ en: "Admin", zh: "管理员" })}
+                            </div>
+                        ` : ''}
+                        <div class="menu-item" onclick="app.logout()">
+                            ${this.t({ en: "Logout", zh: "登出" })}
+                        </div>
+                    </div>
                 `;
                 
                 // Content based on current page
@@ -1923,6 +2074,11 @@
                 
                 // Set up navigation arrows
                 this.setupNavigationArrows();
+                
+                // Toggle menu if needed
+                if (this.menuOpen) {
+                    document.getElementById('menuOverlay').classList.add('active');
+                }
             }
             
             setupNavigationArrows() {
@@ -1954,6 +2110,14 @@
                         };
                         gallery.appendChild(rightArrow);
                     }
+                }
+            }
+            
+            toggleMenu() {
+                this.menuOpen = !this.menuOpen;
+                const menuOverlay = document.getElementById('menuOverlay');
+                if (menuOverlay) {
+                    menuOverlay.classList.toggle('active');
                 }
             }
             
@@ -2218,188 +2382,6 @@
                                         >
                                             ${this.t({ en: "View Materials", zh: "查看资料" })}
                                         </button>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </section>
-                `;
-            }
-            
-            libraryPage() {
-                return `
-                    <section class="py-20 bg-white">
-                        <div class="container mx-auto px-4">
-                            <div class="text-center mb-16">
-                                <h1 class="text-4xl font-bold text-gray-800 mb-4">${this.t({ en: "Comprehensive Library", zh: "综合资料库" })}</h1>
-                                <p class="text-xl text-gray-600">${this.t({ en: "Access all biology units with videos, articles, and resources", zh: "访问所有生物学单元的视频、文章和资源" })}</p>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                ${this.units.map(unit => `
-                                    <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition duration-300 transform hover:-translate-y-1 hover-scale">
-                                        <img 
-                                            src="https://placehold.co/300x200?text=${encodeURIComponent(unit.title[this.language])}" 
-                                            alt="${unit.title[this.language]}" 
-                                            class="w-full h-48 object-cover"
-                                        />
-                                        <div class="p-6">
-                                            <h3 class="text-xl font-semibold text-gray-800 mb-2">${unit.title[this.language]}</h3>
-                                            <p class="text-gray-600 mb-4 text-sm leading-relaxed">${unit.description[this.language]}</p>
-                                            
-                                            <div class="space-y-3 mb-4">
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm font-medium text-gray-700">${this.t({ en: "Videos", zh: "视频" })}</span>
-                                                    <span class="text-sm text-green-600">${unit.videos.length}</span>
-                                                </div>
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm font-medium text-gray-700">${this.t({ en: "Articles", zh: "文章" })}</span>
-                                                    <span class="text-sm text-blue-600">${unit.articles.length}</span>
-                                                </div>
-                                                <div class="flex items-center justify-between">
-                                                    <span class="text-sm font-medium text-gray-700">${this.t({ en: "Quizzes", zh: "测验" })}</span>
-                                                    <span class="text-sm text-purple-600">${unit.quizzes.length}</span>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="flex space-x-2">
-                                                <button onclick="app.watchVideo(${unit.id})" class="flex-1 media-btn video-btn hover:shadow-lg transform hover:-translate-y-1 transition duration-200 text-sm">
-                                                    ${this.t({ en: "Watch Video", zh: "观看视频" })}
-                                                </button>
-                                                <button onclick="app.readArticle(${unit.id})" class="flex-1 media-btn article-btn hover:shadow-lg transform hover:-translate-y-1 transition duration-200 text-sm">
-                                                    ${this.t({ en: "Read Article", zh: "阅读文章" })}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </section>
-                `;
-            }
-            
-            quizzesPage() {
-                return `
-                    <section class="py-20 bg-gray-50">
-                        <div class="container mx-auto px-4">
-                            <div class="text-center mb-16">
-                                <h1 class="text-4xl font-bold text-gray-800 mb-4">${this.t({ en: "Interactive Quizzes", zh: "互动测验" })}</h1>
-                                <p class="text-xl text-gray-600">${this.t({ en: "Test your knowledge with unit-based quizzes", zh: "通过单元测验测试您的知识" })}</p>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                ${this.units.map(unit => `
-                                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition duration-300 hover-scale">
-                                        <h3 class="text-xl font-semibold text-gray-800 mb-4">${unit.title[this.language]}</h3>
-                                        <p class="text-gray-600 mb-6">${unit.description[this.language]}</p>
-                                        
-                                        <div class="flex items-center justify-between mb-6">
-                                            <span class="text-sm font-medium text-gray-700">${this.t({ en: "Questions", zh: "题目" })}</span>
-                                            <span class="text-sm text-purple-600">${unit.quizzes[0]?.questions?.length || 0}</span>
-                                        </div>
-                                        
-                                        <button onclick="app.startQuiz(${unit.id})" class="w-full quiz-btn hover:shadow-lg transform hover:-translate-y-1 transition duration-200">
-                                            ${this.t({ en: "Take Quiz", zh: "参加测验" })}
-                                        </button>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </section>
-                `;
-            }
-            
-            worksheetsPage() {
-                return `
-                    <section class="py-20 bg-white">
-                        <div class="container mx-auto px-4">
-                            <div class="text-center mb-16">
-                                <h1 class="text-4xl font-bold text-gray-800 mb-4">${this.t({ en: "Practice Worksheets", zh: "练习题" })}</h1>
-                                <p class="text-xl text-gray-600">${this.t({ en: "Downloadable worksheets to reinforce your understanding", zh: "可下载的练习题以巩固您的理解" })}</p>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                                ${this.units.map(unit => `
-                                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition duration-300 hover-scale">
-                                        <h3 class="text-xl font-semibold text-gray-800 mb-4">${unit.title[this.language]}</h3>
-                                        <p class="text-gray-600 mb-6">${unit.description[this.language]}</p>
-                                        
-                                        <div class="space-y-3 mb-6">
-                                            ${unit.worksheets.map(worksheet => `
-                                                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                    <span class="text-sm font-medium">${worksheet.title[this.language]}</span>
-                                                    <button onclick="app.downloadWorksheet(${worksheet.id})" class="worksheet-download-btn hover:shadow-lg transform hover:-translate-y-1 transition duration-200">
-                                                        ${this.t({ en: "Download", zh: "下载" })}
-                                                    </button>
-                                                </div>
-                                            `).join('')}
-                                        </div>
-                                        
-                                        <button onclick="app.downloadAllWorksheets(${unit.id})" class="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg transform hover:-translate-y-1 transition duration-200">
-                                            ${this.t({ en: "Download All", zh: "全部下载" })}
-                                        </button>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    </section>
-                `;
-            }
-            
-            classesPage() {
-                return `
-                    <section class="py-20 bg-gray-50">
-                        <div class="container mx-auto px-4">
-                            <div class="text-center mb-16">
-                                <h1 class="text-4xl font-bold text-gray-800 mb-4">${this.t({ en: "Class Management", zh: "班级管理" })}</h1>
-                                <p class="text-xl text-gray-600">${this.t({ en: "Manage your classes, assignments, and interactions", zh: "管理您的班级、作业和互动" })}</p>
-                            </div>
-                            
-                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                ${this.classes.map(classObj => `
-                                    <div class="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition duration-300 hover-scale">
-                                        <div class="flex justify-between items-start mb-4">
-                                            <div>
-                                                <h3 class="text-xl font-semibold text-gray-800">${classObj.name[this.language]}</h3>
-                                                <p class="text-gray-600">${this.t({ en: "Teacher", zh: "教师" })}: ${classObj.teacher}</p>
-                                            </div>
-                                            <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                                                ${classObj.code}
-                                            </span>
-                                        </div>
-                                        
-                                        <div class="mb-6">
-                                            <h4 class="font-semibold text-gray-700 mb-3">${this.t({ en: "Upcoming Tasks", zh: "即将到期的任务" })}</h4>
-                                            ${classObj.tasks.length > 0 ? `
-                                                <div class="space-y-3">
-                                                    ${classObj.tasks.map(task => `
-                                                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                                            <div>
-                                                                <p class="font-medium">${task.title[this.language]}</p>
-                                                                <p class="text-sm text-gray-500">${this.t({ en: "Due", zh: "截止" })}: ${task.dueDate}</p>
-                                                            </div>
-                                                            <button onclick="app.startAssignment(${task.id})" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm font-medium hover:shadow-lg transform hover:-translate-y-1 transition duration-200">
-                                                                ${this.t({ en: "Start", zh: "开始" })}
-                                                            </button>
-                                                        </div>
-                                                    `).join('')}
-                                                </div>
-                                            ` : `
-                                                <p class="text-sm text-gray-500 italic">
-                                                    ${this.t({ en: "No upcoming tasks", zh: "暂无即将到期的任务" })}
-                                                </p>
-                                            `}
-                                        </div>
-                                        
-                                        <div class="flex space-x-2">
-                                            <button onclick="app.viewClassMaterials(${classObj.id})" class="flex-1 class-action-btn material-btn hover:shadow-lg transform hover:-translate-y-1 transition duration-200 text-sm">
-                                                ${this.t({ en: "Materials", zh: "资料" })}
-                                            </button>
-                                            <button onclick="app.viewAnnouncements(${classObj.id})" class="flex-1 class-action-btn announcement-btn hover:shadow-lg transform hover:-translate-y-1 transition duration-200 text-sm">
-                                                ${this.t({ en: "Announcements", zh: "公告" })}
-                                            </button>
-                                        </div>
                                     </div>
                                 `).join('')}
                             </div>

@@ -19,6 +19,10 @@
       min-height: 100vh; /* Fill screen height */
       padding: 5rem 1rem;
     }
+    .error-msg {
+      color: red;
+      font-size: 0.875rem;
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
@@ -30,12 +34,14 @@
         </div>
         <h1 class="text-2xl font-bold text-green-700">CWA-Biology</h1>
       </div>
-      <nav class="hidden md:flex space-x-8">
+      <nav class="hidden md:flex space-x-8 items-center">
         <a href="#home" class="nav-link text-gray-700 hover:text-green-600 font-medium transition" role="button">Home</a>
         <a href="#library" class="nav-link text-gray-700 hover:text-green-600 font-medium transition" role="button">Library</a>
         <a href="#exercises" class="nav-link text-gray-700 hover:text-green-600 font-medium transition" role="button">Exercises</a>
         <a href="#assignments" class="nav-link text-gray-700 hover:text-green-600 font-medium transition" role="button">Assignments</a>
         <a href="#progress" class="nav-link text-gray-700 hover:text-green-600 font-medium transition" role="button">Progress</a>
+        <button id="loginBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">Login</button>
+        <button id="registerBtn" class="bg-transparent border-2 border-green-600 text-green-600 px-4 py-2 rounded-lg hover:bg-green-600 hover:text-white transition">Register</button>
       </nav>
     </div>
   </header>
@@ -95,7 +101,43 @@
     <h2 class="text-3xl font-bold text-center mb-10 text-gray-800">📊 Progress Tracking</h2>
     <p class="text-center text-gray-600">Progress tracking information will be shown here.</p>
   </section>
-  <!-- Robust in-canvas navigation fallback: programmatic smooth scroll with header offset -->
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+      <h3 class="text-2xl font-bold mb-4 text-center">Login</h3>
+      <form id="loginForm" class="space-y-4">
+        <input type="email" id="loginEmail" placeholder="Email" class="w-full border rounded-lg px-4 py-2" required>
+        <input type="password" id="loginPassword" placeholder="Password" class="w-full border rounded-lg px-4 py-2" required>
+        <p id="loginError" class="error-msg hidden"></p>
+        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Login</button>
+      </form>
+      <button id="closeLogin" class="mt-4 w-full text-center text-red-600 hover:underline">Close</button>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-6">
+      <h3 class="text-2xl font-bold mb-4 text-center">Register</h3>
+      <form id="registerForm" class="space-y-4">
+        <select id="userRole" class="w-full border rounded-lg px-4 py-2" required>
+          <option value="">Select Role</option>
+          <option value="student">Student</option>
+          <option value="teacher">Teacher</option>
+        </select>
+        <input type="text" id="fullName" placeholder="Full Name" class="w-full border rounded-lg px-4 py-2" required>
+        <input type="email" id="registerEmail" placeholder="Email" class="w-full border rounded-lg px-4 py-2" required>
+        <input type="password" id="registerPassword" placeholder="Password" class="w-full border rounded-lg px-4 py-2" required>
+        <input type="password" id="confirmPassword" placeholder="Confirm Password" class="w-full border rounded-lg px-4 py-2" required>
+        <p id="registerError" class="error-msg hidden"></p>
+        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Register</button>
+      </form>
+      <button id="closeRegister" class="mt-4 w-full text-center text-red-600 hover:underline">Close</button>
+    </div>
+  </div>
+
+  <!-- Robust in-canvas navigation fallback and validation -->
   <script>
     (function() {
       const header = document.getElementById('top-header');
@@ -106,7 +148,6 @@
         const y = el.getBoundingClientRect().top + window.scrollY - headerOffset - 8;
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
-      // Intercept nav clicks so sandboxed previews don't block default anchor behavior
       document.querySelectorAll('a.nav-link[href^="#"]').forEach(a => {
         a.addEventListener('click', function(e) {
           const id = this.getAttribute('href').slice(1);
@@ -116,7 +157,6 @@
           }
         });
       });
-      // Also handle CTA buttons in hero
       document.querySelectorAll('a[href^="#exercises"], a[href^="#library"]').forEach(a => {
         a.addEventListener('click', function(e) {
           const id = this.getAttribute('href').slice(1);
@@ -125,6 +165,75 @@
             scrollToSection(id);
           }
         });
+      });
+
+      // Modal logic
+      const loginBtn = document.getElementById('loginBtn');
+      const registerBtn = document.getElementById('registerBtn');
+      const loginModal = document.getElementById('loginModal');
+      const registerModal = document.getElementById('registerModal');
+      const closeLogin = document.getElementById('closeLogin');
+      const closeRegister = document.getElementById('closeRegister');
+
+      loginBtn.addEventListener('click', () => loginModal.classList.remove('hidden'));
+      registerBtn.addEventListener('click', () => registerModal.classList.remove('hidden'));
+      closeLogin.addEventListener('click', () => loginModal.classList.add('hidden'));
+      closeRegister.addEventListener('click', () => registerModal.classList.add('hidden'));
+
+      // Validation logic for Register
+      const registerForm = document.getElementById('registerForm');
+      const registerError = document.getElementById('registerError');
+      registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const role = document.getElementById('userRole').value;
+        const email = document.getElementById('registerEmail').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (!role) {
+          registerError.textContent = 'Please select a role.';
+          registerError.classList.remove('hidden');
+          return;
+        }
+
+        if (role === 'teacher') {
+          const allowedDomains = [".edu", ".cn", ".uk", ".us", ".org", ".net"];
+          const validDomain = allowedDomains.some(domain => email.endsWith(domain));
+          if (!validDomain) {
+            registerError.textContent = 'Teachers must use an official school email (e.g., ending with .edu, .cn, .uk, .us).';
+            registerError.classList.remove('hidden');
+            return;
+          }
+        }
+
+        if (password !== confirmPassword) {
+          registerError.textContent = 'Passwords do not match.';
+          registerError.classList.remove('hidden');
+          return;
+        }
+
+        registerError.classList.add('hidden');
+        alert('Registration successful!');
+        registerModal.classList.add('hidden');
+      });
+
+      // Validation logic for Login
+      const loginForm = document.getElementById('loginForm');
+      const loginError = document.getElementById('loginError');
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!email || !password) {
+          loginError.textContent = 'Please enter email and password.';
+          loginError.classList.remove('hidden');
+          return;
+        }
+
+        loginError.classList.add('hidden');
+        alert('Login successful!');
+        loginModal.classList.add('hidden');
       });
     })();
   </script>

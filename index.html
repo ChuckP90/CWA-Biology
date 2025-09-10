@@ -1,580 +1,647 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CWA-Biology</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CWA-Biology — Bilingual Static Portal (Admin + Public)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    body { font-family: 'Inter', sans-serif; }
-    html { scroll-behavior: smooth; }
-    section { min-height: 100vh; padding: 5rem 1rem; }
-    .error-msg { color: #dc2626; font-size: 0.875rem; }
-    .tab { display: none; }
-    .tab.active { display: block; }
-    .admin-shell { display: grid; grid-template-columns: 260px 1fr; gap: 1.25rem; }
+    body { font-family: Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial; }
+    .tab { display:none; }
+    .tab.active { display:block; }
+    .lang-cn { display:none; }
+    section { padding: 3rem 1rem; }
+    .dropzone { border:2px dashed #e5e7eb; padding:1rem; border-radius:.5rem; text-align:center; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:.5rem; border:1px solid #e5e7eb; }
     .masked { font-family: monospace; }
-    .dropzone { border: 2px dashed #e5e7eb; border-radius: 0.75rem; padding: 1rem; text-align:center; }
+    /* small helpers */
+    .clickable { cursor:pointer; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-900">
-  <!-- Announcement Banner (Admin-controlled) -->
+
+  <!-- Announcement -->
   <div id="globalAnnouncement" class="hidden bg-yellow-100 text-yellow-900 px-6 py-3 text-center"></div>
 
-  <header id="top-header" class="bg-white shadow-md sticky top-0 z-50">
-    <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-          <span class="text-white font-bold text-lg">B</span>
-        </div>
+  <!-- Header -->
+  <header id="top-header" class="bg-white shadow sticky top-0 z-50">
+    <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center text-white font-bold">B</div>
         <h1 id="siteName" class="text-2xl font-bold text-green-700">CWA-Biology</h1>
       </div>
-      <nav class="hidden md:flex space-x-6 items-center">
-        <a href="#home" class="nav-link text-gray-700 hover:text-green-600 font-medium">Home</a>
-        <a href="#library" class="nav-link text-gray-700 hover:text-green-600 font-medium">Library</a>
-        <a href="#exercises" class="nav-link text-gray-700 hover:text-green-600 font-medium">Exercises</a>
-        <a href="#assignments" class="nav-link text-gray-700 hover:text-green-600 font-medium">Assignments</a>
-        <a href="#progress" class="nav-link text-gray-700 hover:text-green-600 font-medium">Progress</a>
-        <a href="#teacher-dashboard" class="nav-link text-gray-700 hover:text-green-600 font-medium">Teacher Dashboard</a>
-        <a href="#student-dashboard" class="nav-link text-gray-700 hover:text-green-600 font-medium">Student Dashboard</a>
-        <button id="loginBtn" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">Login</button>
-        <button id="registerBtn" class="border-2 border-green-600 text-green-600 px-4 py-2 rounded-lg hover:bg-green-600 hover:text-white">Register</button>
-        <button id="adminLoginBtn" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">Admin</button>
+      <nav class="hidden md:flex items-center gap-4">
+        <a href="#home" class="nav-link text-gray-700 hover:text-green-600">Home</a>
+        <a href="#units" class="nav-link text-gray-700 hover:text-green-600">Units</a>
+        <a href="#library" class="nav-link text-gray-700 hover:text-green-600">Library</a>
+        <a href="#articles" class="nav-link text-gray-700 hover:text-green-600">Articles</a>
+        <a href="#quizzes" class="nav-link text-gray-700 hover:text-green-600">Quizzes</a>
+        <a href="#progress" class="nav-link text-gray-700 hover:text-green-600">Progress</a>
+        <button id="adminOpenBtn" class="bg-red-600 text-white px-4 py-2 rounded">Admin</button>
+        <button id="langToggle" class="border border-green-600 text-green-600 px-3 py-2 rounded">中文</button>
       </nav>
     </div>
   </header>
 
-  <!-- Home Section -->
-  <section id="home" class="relative flex items-center justify-center bg-gray-800 text-white">
-    <div class="absolute inset-0">
-      <img src="https://image2url.com/images/1756192024345-f9e28db4-2b09-4491-8922-12b7a732ea2c.jpg" alt="Biology Lab" class="w-full h-full object-cover" />
-      <div class="absolute inset-0 bg-black bg-opacity-40"></div>
-    </div>
-    <div class="relative z-10 text-center px-6">
-      <h2 class="text-3xl md:text-5xl font-bold mb-4">Welcome to <span class="text-green-400">CWA-Biology</span></h2>
-      <p class="text-lg md:text-xl max-w-2xl mb-8">Interactive Learning Platform for Students & Teachers</p>
-      <div class="space-x-4">
-        <a href="#library" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-medium">Explore Library</a>
-        <a href="#exercises" class="border-2 border-white hover:bg-white hover:text-gray-800 px-6 py-3 rounded-lg font-medium">Start Practicing</a>
+  <!-- Main content -->
+  <main>
+
+    <!-- Home -->
+    <section id="home" class="relative flex items-center justify-center bg-gray-800 text-white" style="min-height:36vh">
+      <div class="text-center p-6">
+        <h2 class="text-3xl md:text-4xl font-bold lang-en">Welcome to CWA-Biology</h2>
+        <h2 class="text-3xl md:text-4xl font-bold lang-cn">欢迎来到 CWA-Biology</h2>
+        <p class="mt-3 text-lg lang-en">Interactive bilingual biology resource — public portal (Admin can manage content).</p>
+        <p class="mt-3 text-lg lang-cn">双语生物资源平台 — 公开门户（管理员可管理内容）。</p>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Library Section -->
-  <section id="library" data-controlled="library" class="bg-gray-100">
-    <h2 class="text-3xl font-bold text-center mb-8">📚 Library</h2>
-    <div class="max-w-6xl mx-auto">
-      <div class="mb-4 flex items-center gap-3">
-        <input id="librarySearch" type="text" placeholder="Search resources..." class="w-full md:w-1/2 border rounded-lg px-4 py-2"/>
-        <select id="libraryFilter" class="border rounded-lg px-3 py-2">
-          <option value="all">All</option>
-          <option value="article">Articles</option>
-          <option value="video">Videos</option>
-        </select>
+    <!-- Units (public view grouped list) -->
+    <section id="units" class="bg-gray-100">
+      <div class="max-w-5xl mx-auto">
+        <h2 class="text-2xl font-semibold mb-4 text-center lang-en">📘 Units</h2>
+        <h2 class="text-2xl font-semibold mb-4 text-center lang-cn">📘 单元</h2>
+
+        <div id="unitsList" class="space-y-4"></div>
       </div>
-      <div id="libraryList" class="grid md:grid-cols-3 gap-6"></div>
-      <p id="libraryEmpty" class="hidden text-center text-gray-500">No resources yet. Admin can add some from Admin → Library.</p>
-    </div>
-  </section>
+    </section>
 
-  <!-- Exercises Section -->
-  <section id="exercises" data-controlled="exercises" class="bg-white">
-    <h2 class="text-3xl font-bold text-center mb-8">✏️ Exercises</h2>
-    <div id="exerciseList" class="max-w-5xl mx-auto grid md:grid-cols-2 gap-6"></div>
-    <p id="exerciseEmpty" class="hidden text-center text-gray-500">No exercises yet. Admin can add some from Admin → Quizzes.</p>
-  </section>
-
-  <!-- Assignments Section -->
-  <section id="assignments" data-controlled="assignments" class="bg-gray-100">
-    <h2 class="text-3xl font-bold text-center mb-8">📝 Assignments</h2>
-    <p class="text-center text-gray-600">Assignments will be listed here.</p>
-  </section>
-
-  <!-- Progress Section -->
-  <section id="progress" data-controlled="progress" class="bg-white">
-    <h2 class="text-3xl font-bold text-center mb-8">📊 Progress Tracking</h2>
-    <p class="text-center text-gray-600">Progress tracking information will be shown here.</p>
-  </section>
-
-  <!-- Teacher Dashboard Section (placeholder—existing functionality assumed) -->
-  <section id="teacher-dashboard" data-controlled="teacher" class="bg-gray-100">
-    <h2 class="text-3xl font-bold text-center mb-8">👩‍🏫 Teacher Dashboard</h2>
-    <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-8">
-      <div class="bg-white p-6 rounded-xl shadow">
-        <h3 class="text-xl font-semibold mb-3 text-green-700">Manage Classes</h3>
-        <form id="tCreateClass" class="space-y-3">
-          <input type="text" name="title" placeholder="Class Name" class="w-full border rounded-lg px-4 py-2" required>
-          <textarea name="desc" placeholder="Class Description" class="w-full border rounded-lg px-4 py-2"></textarea>
-          <button class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Add Class</button>
-        </form>
-        <div id="tClassList" class="mt-4 space-y-3"></div>
+    <!-- Library (resources per unit) -->
+    <section id="library" class="bg-white">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-2xl font-semibold mb-4 text-center lang-en">📚 Library (Unit-based)</h2>
+        <h2 class="text-2xl font-semibold mb-4 text-center lang-cn">📚 资料库（按单元）</h2>
+        <div id="libraryList" class="grid md:grid-cols-2 gap-4"></div>
       </div>
-      <div class="bg-white p-6 rounded-xl shadow">
-        <h3 class="text-xl font-semibold mb-3 text-green-700">Tasks & Feedback</h3>
-        <form id="tAddTask" class="space-y-3">
-          <input type="text" name="title" placeholder="Task Title" class="w-full border rounded-lg px-4 py-2" required>
-          <textarea name="details" placeholder="Task Details" class="w-full border rounded-lg px-4 py-2"></textarea>
-          <button class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Add Task</button>
-        </form>
-        <div id="tTaskList" class="mt-4 space-y-3"></div>
+    </section>
+
+    <!-- Articles -->
+    <section id="articles" class="bg-gray-100">
+      <div class="max-w-6xl mx-auto">
+        <h2 class="text-2xl font-semibold mb-4 text-center lang-en">📄 Articles</h2>
+        <h2 class="text-2xl font-semibold mb-4 text-center lang-cn">📄 文章</h2>
+        <div id="articlesList" class="space-y-4"></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Student Dashboard Section (placeholder—existing functionality assumed) -->
-  <section id="student-dashboard" data-controlled="student" class="bg-white">
-    <h2 class="text-3xl font-bold text-center mb-8">👨‍🎓 Student Dashboard</h2>
-    <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-8">
-      <div class="bg-gray-100 p-6 rounded-xl shadow">
-        <h3 class="text-xl font-semibold mb-4 text-green-700">Join a Class</h3>
-        <form id="sJoinClass" class="space-y-3">
-          <input type="text" name="code" placeholder="Class Code" class="w-full border rounded-lg px-4 py-2" required>
-          <button class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Join Class</button>
-        </form>
-        <div id="sClassList" class="mt-4 space-y-3"></div>
+    <!-- Quizzes -->
+    <section id="quizzes" class="bg-white">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-2xl font-semibold mb-4 text-center lang-en">📝 Quizzes</h2>
+        <h2 class="text-2xl font-semibold mb-4 text-center lang-cn">📝 测验</h2>
+        <div id="quizzesList" class="space-y-4"></div>
       </div>
-      <div class="bg-gray-100 p-6 rounded-xl shadow">
-        <h3 class="text-xl font-semibold mb-4 text-green-700">Your Tasks & Progress</h3>
-        <div id="sTaskList" class="space-y-3"></div>
+    </section>
+
+    <!-- Progress placeholder -->
+    <section id="progress" class="bg-gray-100">
+      <div class="max-w-4xl mx-auto text-center">
+        <h2 class="text-2xl font-semibold mb-4 lang-en">📊 Progress Tracking</h2>
+        <h2 class="text-2xl font-semibold mb-4 lang-cn">📊 学习进度</h2>
+        <p class="text-gray-600 lang-en">Progress features are placeholders in static mode.</p>
+        <p class="text-gray-600 lang-cn">静态模式下，进度功能为占位符。</p>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Login Modal -->
-  <div id="loginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow w-full max-w-md p-6">
-      <h3 class="text-2xl font-bold mb-4 text-center">Login</h3>
-      <form id="loginForm" class="space-y-4">
-        <input type="email" id="loginEmail" placeholder="Email" class="w-full border rounded-lg px-4 py-2" required>
-        <input type="password" id="loginPassword" placeholder="Password" class="w-full border rounded-lg px-4 py-2" required>
-        <p id="loginError" class="error-msg hidden"></p>
-        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Login</button>
-      </form>
-      <button id="closeLogin" class="mt-4 w-full text-center text-red-600 hover:underline">Close</button>
-    </div>
-  </div>
+    <!-- Admin Dashboard placeholder (shown after login) -->
+    <section id="adminDashboardSection" class="bg-white hidden">
+      <div class="max-w-7xl mx-auto py-8">
+        <h2 class="text-2xl font-semibold text-center mb-6">⚙️ Admin Dashboard</h2>
+        <div class="grid md:grid-cols-4 gap-6">
+          <aside class="bg-gray-50 p-4 rounded-lg shadow">
+            <nav class="space-y-2">
+              <button class="admin-tab-btn w-full text-left px-3 py-2 rounded bg-red-600 text-white" data-tab="admin-units">Units</button>
+              <button class="admin-tab-btn w-full text-left px-3 py-2 rounded bg-gray-200" data-tab="admin-articles">Articles</button>
+              <button class="admin-tab-btn w-full text-left px-3 py-2 rounded bg-gray-200" data-tab="admin-quizzes">Quizzes</button>
+              <button id="adminCloseBtn" class="w-full text-left px-3 py-2 rounded bg-gray-200 mt-4">Close Admin</button>
+            </nav>
+            <div class="mt-6 text-sm text-gray-500">Admin: <strong>Chagri90</strong></div>
+          </aside>
 
-  <!-- Register Modal -->
-  <div id="registerModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow w-full max-w-md p-6">
-      <h3 class="text-2xl font-bold mb-4 text-center">Register</h3>
-      <form id="registerForm" class="space-y-4">
-        <select id="userRole" class="w-full border rounded-lg px-4 py-2" required>
-          <option value="">Select Role</option>
-          <option value="student">Student</option>
-          <option value="teacher">Teacher</option>
-        </select>
-        <input type="text" id="fullName" placeholder="Full Name" class="w-full border rounded-lg px-4 py-2" required>
-        <input type="email" id="registerEmail" placeholder="Email" class="w-full border rounded-lg px-4 py-2" required>
-        <input type="password" id="registerPassword" placeholder="Password" class="w-full border rounded-lg px-4 py-2" required>
-        <input type="password" id="confirmPassword" placeholder="Confirm Password" class="w-full border rounded-lg px-4 py-2" required>
-        <p id="registerError" class="error-msg hidden"></p>
-        <button type="submit" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Register</button>
-      </form>
-      <button id="closeRegister" class="mt-4 w-full text-center text-red-600 hover:underline">Close</button>
-    </div>
-  </div>
-
-  <!-- Admin Login Modal -->
-  <div id="adminLoginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow w-full max-w-md p-6">
-      <h3 class="text-2xl font-bold mb-4 text-center text-red-600">Admin Login</h3>
-      <form id="adminLoginForm" class="space-y-4">
-        <input type="text" id="adminUsername" placeholder="Username" class="w-full border rounded-lg px-4 py-2" required>
-        <input type="password" id="adminPassword" placeholder="Password" class="w-full border rounded-lg px-4 py-2" required>
-        <p id="adminLoginError" class="error-msg hidden"></p>
-        <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Login</button>
-      </form>
-      <button id="closeAdminLogin" class="mt-4 w-full text-center text-red-600 hover:underline">Close</button>
-    </div>
-  </div>
-
-  <!-- Confirm Modal (generic) -->
-  <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl shadow w-full max-w-sm p-6">
-      <h3 id="confirmTitle" class="text-xl font-semibold mb-2">Confirm</h3>
-      <p id="confirmMessage" class="text-gray-700 mb-4"></p>
-      <div class="flex justify-end gap-3">
-        <button id="confirmCancel" class="px-4 py-2 rounded-lg border">Cancel</button>
-        <button id="confirmOk" class="px-4 py-2 rounded-lg bg-red-600 text-white">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Admin Dashboard (with sidebar + tabs) -->
-  <section id="admin-dashboard" class="bg-gray-100 hidden">
-    <div class="max-w-7xl mx-auto py-8">
-      <h2 class="text-3xl font-bold text-center mb-8 text-gray-800">🛠️ Admin Dashboard</h2>
-      <div class="admin-shell">
-        <!-- Sidebar -->
-        <aside class="bg-white rounded-xl shadow p-4 h-fit">
-          <nav class="space-y-2">
-            <button class="admin-tab-btn w-full text-left px-4 py-2 rounded-lg bg-red-600 text-white" data-tab="units">Units</button>
-            <button class="admin-tab-btn w-full text-left px-4 py-2 rounded-lg bg-gray-200" data-tab="library">Library</button>
-            <button class="admin-tab-btn w-full text-left px-4 py-2 rounded-lg bg-gray-200" data-tab="quizzes">Quizzes</button>
-            <button class="admin-tab-btn w-full text-left px-4 py-2 rounded-lg bg-gray-200" data-tab="users">Users</button>
-            <button class="admin-tab-btn w-full text-left px-4 py-2 rounded-lg bg-gray-200" data-tab="analytics">Analytics</button>
-            <button class="admin-tab-btn w-full text-left px-4 py-2 rounded-lg bg-gray-200" data-tab="settings">Site Settings</button>
-          </nav>
-          <div class="mt-6 border-t pt-4 text-sm text-gray-500">
-            <p id="adminSessionInfo">Session active</p>
-            <button id="adminLogout" class="mt-2 text-red-600 hover:underline">Log out</button>
-          </div>
-        </aside>
-
-        <!-- Main Panel -->
-        <div class="space-y-6">
-          <!-- Units Tab -->
-          <div id="tab-units" class="tab active bg-white p-6 rounded-xl shadow">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-semibold text-red-600">Manage Units</h3>
-              <input id="unitSearch" type="text" placeholder="Search units..." class="border rounded-lg px-3 py-2"/>
+          <div class="md:col-span-3">
+            <!-- Units Tab -->
+            <div id="admin-units" class="admin-tab-panel bg-white p-6 rounded shadow">
+              <h3 class="text-lg font-semibold text-red-600 mb-4">Manage Units</h3>
+              <form id="unitForm" class="grid gap-3 md:grid-cols-2">
+                <input id="u_title" placeholder="Unit title (e.g., Unit 1: Characteristics)" class="border px-3 py-2 rounded" required>
+                <input id="u_code" placeholder="Unit code (optional)" class="border px-3 py-2 rounded">
+                <textarea id="u_en_orig" placeholder="English Original (full text)" class="border px-3 py-2 rounded md:col-span-2"></textarea>
+                <textarea id="u_en_simp" placeholder="English Simplified" class="border px-3 py-2 rounded md:col-span-2"></textarea>
+                <textarea id="u_cn_orig" placeholder="中文原文" class="border px-3 py-2 rounded md:col-span-2"></textarea>
+                <textarea id="u_cn_simp" placeholder="中文简化版" class="border px-3 py-2 rounded md:col-span-2"></textarea>
+                <button class="md:col-span-2 bg-red-600 text-white px-4 py-2 rounded">Add Unit</button>
+              </form>
+              <div id="adminUnitsList" class="mt-4 space-y-2"></div>
             </div>
-            <form id="unitForm" class="grid md:grid-cols-2 gap-3 mb-4">
-              <input type="text" name="title" placeholder="Unit Title" class="border rounded-lg px-4 py-2" required>
-              <input type="text" name="code" placeholder="Unit Code (e.g., BIO-101)" class="border rounded-lg px-4 py-2">
-              <textarea name="desc" placeholder="Unit Description" class="md:col-span-2 border rounded-lg px-4 py-2"></textarea>
-              <button class="md:col-span-2 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Add Unit</button>
-            </form>
-            <div id="unitList" class="divide-y"></div>
-            <p id="unitEmpty" class="hidden text-gray-500">No units yet.</p>
-          </div>
 
-          <!-- Library Tab -->
-          <div id="tab-library" class="tab bg-white p-6 rounded-xl shadow">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-semibold text-red-600">Manage Library</h3>
-              <input id="adminLibrarySearch" type="text" placeholder="Search library..." class="border rounded-lg px-3 py-2"/>
+            <!-- Articles Tab -->
+            <div id="admin-articles" class="admin-tab-panel bg-white p-6 rounded shadow hidden">
+              <h3 class="text-lg font-semibold text-red-600 mb-4">Manage Articles</h3>
+              <form id="articleForm" class="grid gap-3">
+                <select id="article_unit_select" class="border px-3 py-2 rounded" required>
+                  <option value="">Select Unit</option>
+                </select>
+                <input id="a_title" placeholder="Article Title" class="border px-3 py-2 rounded" required>
+                <textarea id="a_en_orig" placeholder="English Original (full article)" class="border px-3 py-2 rounded"></textarea>
+                <textarea id="a_en_simp" placeholder="English Simplified" class="border px-3 py-2 rounded"></textarea>
+                <textarea id="a_cn_orig" placeholder="中文原文" class="border px-3 py-2 rounded"></textarea>
+                <textarea id="a_cn_simp" placeholder="中文简化版" class="border px-3 py-2 rounded"></textarea>
+                <button class="bg-red-600 text-white px-4 py-2 rounded">Add Article</button>
+              </form>
+              <div id="adminArticlesList" class="mt-4 space-y-2"></div>
             </div>
-            <form id="libraryForm" class="grid md:grid-cols-2 gap-3 mb-4">
-              <input type="text" name="title" placeholder="Resource Title" class="border rounded-lg px-4 py-2" required>
-              <select name="type" class="border rounded-lg px-3 py-2">
-                <option value="article">Article</option>
-                <option value="video">Video</option>
-              </select>
-              <input type="url" name="url" placeholder="Resource URL (optional)" class="border rounded-lg px-4 py-2 md:col-span-2">
-              <div id="libDrop" class="dropzone md:col-span-2">Drag & Drop file here or click to select<input type="file" name="file" class="hidden"/></div>
-              <textarea name="desc" placeholder="Short Description" class="border rounded-lg px-4 py-2 md:col-span-2"></textarea>
-              <button class="md:col-span-2 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Upload / Add</button>
-            </form>
-            <div id="adminLibraryList" class="divide-y"></div>
-            <p id="adminLibraryEmpty" class="hidden text-gray-500">No resources yet.</p>
-          </div>
 
-          <!-- Quizzes Tab -->
-          <div id="tab-quizzes" class="tab bg-white p-6 rounded-xl shadow">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-semibold text-red-600">Manage Quizzes & Exercises</h3>
-              <input id="quizSearch" type="text" placeholder="Search quizzes..." class="border rounded-lg px-3 py-2"/>
+            <!-- Quizzes Tab -->
+            <div id="admin-quizzes" class="admin-tab-panel bg-white p-6 rounded shadow hidden">
+              <h3 class="text-lg font-semibold text-red-600 mb-4">Manage Quizzes</h3>
+              <form id="quizForm" class="grid gap-3">
+                <select id="quiz_unit_select" class="border px-3 py-2 rounded" required>
+                  <option value="">Select Unit</option>
+                </select>
+                <input id="q_title" placeholder="Quiz title / Question" class="border px-3 py-2 rounded" required>
+                <!-- For simplicity we store options as newline-separated pairs including correct marker -->
+                <textarea id="q_en_orig" placeholder="English Original options (one per line; prefix correct with *)" class="border px-3 py-2 rounded" ></textarea>
+                <textarea id="q_en_simp" placeholder="English Simplified options (one per line; prefix correct with *)" class="border px-3 py-2 rounded" ></textarea>
+                <textarea id="q_cn_orig" placeholder="中文原文选项 (每行一个; 正确项前加*)" class="border px-3 py-2 rounded" ></textarea>
+                <textarea id="q_cn_simp" placeholder="中文简化版选项 (每行一个; 正确项前加*)" class="border px-3 py-2 rounded" ></textarea>
+                <button class="bg-red-600 text-white px-4 py-2 rounded">Add Quiz</button>
+              </form>
+              <div id="adminQuizzesList" class="mt-4 space-y-2"></div>
             </div>
-            <form id="quizForm" class="grid md:grid-cols-2 gap-3 mb-4">
-              <input type="text" name="title" placeholder="Quiz Title" class="border rounded-lg px-4 py-2" required>
-              <select name="category" class="border rounded-lg px-3 py-2">
-                <option value="general">General</option>
-                <option value="cell-bio">Cell Biology</option>
-                <option value="genetics">Genetics</option>
-                <option value="ecology">Ecology</option>
-              </select>
-              <input type="url" name="url" placeholder="Quiz/Exercise URL (optional)" class="border rounded-lg px-4 py-2 md:col-span-2">
-              <div id="quizDrop" class="dropzone md:col-span-2">Drag & Drop file here or click to select<input type="file" name="file" class="hidden"/></div>
-              <textarea name="desc" placeholder="Short Description" class="border rounded-lg px-4 py-2 md:col-span-2"></textarea>
-              <button class="md:col-span-2 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Create / Upload</button>
-            </form>
-            <div id="quizList" class="divide-y"></div>
-            <p id="quizEmpty" class="hidden text-gray-500">No quizzes yet.</p>
-          </div>
 
-          <!-- Users Tab -->
-          <div id="tab-users" class="tab bg-white p-6 rounded-xl shadow">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-xl font-semibold text-red-600">Manage Users</h3>
-              <input id="userSearch" type="text" placeholder="Search users..." class="border rounded-lg px-3 py-2"/>
-            </div>
-            <div id="userList" class="divide-y"></div>
-            <p id="userEmpty" class="hidden text-gray-500">No users yet.</p>
-          </div>
-
-          <!-- Analytics Tab -->
-          <div id="tab-analytics" class="tab bg-white p-6 rounded-xl shadow">
-            <h3 class="text-xl font-semibold text-red-600 mb-4">Platform Analytics</h3>
-            <div class="grid md:grid-cols-4 gap-4 mb-6">
-              <div class="bg-gray-100 p-4 rounded-lg text-center"><div class="text-3xl font-bold" id="statStudents">0</div><div class="text-gray-600">Students</div></div>
-              <div class="bg-gray-100 p-4 rounded-lg text-center"><div class="text-3xl font-bold" id="statTeachers">0</div><div class="text-gray-600">Teachers</div></div>
-              <div class="bg-gray-100 p-4 rounded-lg text-center"><div class="text-3xl font-bold" id="statClasses">0</div><div class="text-gray-600">Classes</div></div>
-              <div class="bg-gray-100 p-4 rounded-lg text-center"><div class="text-3xl font-bold" id="statResources">0</div><div class="text-gray-600">Resources</div></div>
-            </div>
-            <div class="bg-gray-100 p-6 rounded-lg text-center text-gray-600">Charts can be plugged in later (e.g., usage over time).</div>
-          </div>
-
-          <!-- Settings Tab -->
-          <div id="tab-settings" class="tab bg-white p-6 rounded-xl shadow">
-            <h3 class="text-xl font-semibold text-red-600 mb-4">Site Settings</h3>
-            <form id="settingsForm" class="space-y-6">
-              <div>
-                <label class="block font-medium mb-2">Site Title</label>
-                <input id="settingSiteName" type="text" class="border rounded-lg px-4 py-2 w-full" placeholder="CWA-Biology"/>
-              </div>
-              <div>
-                <label class="block font-medium mb-2">Global Announcement</label>
-                <textarea id="settingAnnouncement" class="border rounded-lg px-4 py-2 w-full" placeholder="Short message shown at the top of the site"></textarea>
-              </div>
-              <div>
-                <p class="font-medium mb-2">Toggle Sections</p>
-                <div class="grid md:grid-cols-3 gap-3">
-                  <label class="flex items-center gap-2"><input type="checkbox" class="setting-toggle" data-target="library"> Library</label>
-                  <label class="flex items-center gap-2"><input type="checkbox" class="setting-toggle" data-target="exercises"> Exercises</label>
-                  <label class="flex items-center gap-2"><input type="checkbox" class="setting-toggle" data-target="assignments"> Assignments</label>
-                  <label class="flex items-center gap-2"><input type="checkbox" class="setting-toggle" data-target="progress"> Progress</label>
-                  <label class="flex items-center gap-2"><input type="checkbox" class="setting-toggle" data-target="teacher"> Teacher Dashboard</label>
-                  <label class="flex items-center gap-2"><input type="checkbox" class="setting-toggle" data-target="student"> Student Dashboard</label>
-                </div>
-              </div>
-              <div class="flex justify-end gap-3">
-                <button type="button" id="settingsReset" class="px-4 py-2 rounded-lg border">Reset</button>
-                <button class="px-4 py-2 rounded-lg bg-red-600 text-white">Save Settings</button>
-              </div>
-            </form>
           </div>
         </div>
       </div>
+    </section>
+
+  </main>
+
+  <!-- Admin Login Modal -->
+  <div id="adminLoginModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded p-6 w-full max-w-md">
+      <h3 class="text-xl font-bold mb-3 text-red-600">Admin Login</h3>
+      <form id="adminLoginForm" class="space-y-3">
+        <input id="adminUser" placeholder="Username" class="w-full border rounded px-3 py-2" required />
+        <input id="adminPass" type="password" placeholder="Password" class="w-full border rounded px-3 py-2" required />
+        <p id="adminErr" class="text-red-600 hidden"></p>
+        <button class="w-full bg-red-600 text-white px-3 py-2 rounded">Login</button>
+      </form>
+      <button id="closeAdminModal" class="mt-3 text-gray-600">Close</button>
     </div>
-  </section>
+  </div>
 
   <script>
   (function(){
-    // ===== Utilities & Local Storage Helpers =====
+    // --------------------------
+    // Utilities & storage helpers
+    // --------------------------
     const $ = s => document.querySelector(s);
     const $$ = s => Array.from(document.querySelectorAll(s));
-    const saveLS = (k,v)=>localStorage.setItem(k, JSON.stringify(v));
-    const loadLS = (k,def=null)=>{ try{ const v = JSON.parse(localStorage.getItem(k)); return v ?? def; }catch{ return def; } };
+    const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2,9));
+    const save = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+    const load = (k,def) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? def; } catch { return def; } };
 
-    // ===== Smooth scroll for in-canvas nav =====
-    const header = document.getElementById('top-header');
-    const headerOffset = header ? header.offsetHeight : 0;
-    function scrollToSection(id){ const el = document.getElementById(id); if(!el) return; const y = el.getBoundingClientRect().top + window.scrollY - headerOffset - 8; window.scrollTo({ top:y, behavior:'smooth' }); }
-    $$("a.nav-link[href^='#']").forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); scrollToSection(a.getAttribute('href').slice(1)); }));
+    // storage keys
+    const KEY_UNITS = 'cwa_units_v1';
+    const KEY_ARTICLES = 'cwa_articles_v1';
+    const KEY_QUIZZES = 'cwa_quizzes_v1';
+    const KEY_SETTINGS = 'cwa_settings_v1';
 
-    // ===== Auth: Register & Login (mock) =====
-    const loginBtn = $('#loginBtn'); const registerBtn = $('#registerBtn');
-    const loginModal = $('#loginModal'); const registerModal = $('#registerModal');
-    $('#closeLogin').addEventListener('click', ()=>loginModal.classList.add('hidden'));
-    $('#closeRegister').addEventListener('click', ()=>registerModal.classList.add('hidden'));
-    loginBtn.addEventListener('click', ()=>loginModal.classList.remove('hidden'));
-    registerBtn.addEventListener('click', ()=>registerModal.classList.remove('hidden'));
+    // initial hard-coded Unit 1 and Sample Article & Quiz (hard-coded into HTML view already)
+    // but also seed localStorage so Admin additions will merge nicely.
+    if(!localStorage.getItem(KEY_UNITS)) {
+      const seedUnits = [
+        {
+          id: 'unit-1',
+          title: 'Unit 1: The Characteristics of Living Organisms',
+          code: 'UNIT-1',
+          en_original: `Living organisms share a set of characteristics that distinguish them from non-living things. These include Movement, Respiration, Sensitivity, Growth, Reproduction, Excretion, and Nutrition.`,
+          en_simplified: `Living things are different from non-living things. They move, breathe for energy, respond to changes, grow, reproduce, get rid of waste, and need food.`,
+          cn_original: `生物体具有一系列特征，使它们与非生物区分开来：运动、呼吸、感应性、生长、繁殖、排泄和营养。`,
+          cn_simplified: `生物和非生物不同。它们会动、呼吸获得能量、对变化作出反应、长大、繁殖、排出废物并且需要食物。`
+        }
+      ];
+      save(KEY_UNITS, seedUnits);
+    }
 
-    const allowedTeacherTLDs = [".edu", ".cn", ".uk", ".us", ".org", ".net", ".edu.cn", ".edu.uk", ".edu.tr", ".edu.au", ".ac.uk", ".ac.cn"]; // extendable
+    if(!localStorage.getItem(KEY_ARTICLES)) {
+      // Article adapted from GeeksforGeeks (citation included in article object)
+      const seedArticles = [
+        {
+          id: uid(),
+          unitId: 'unit-1',
+          title: 'Living Things: Characteristics and Examples — Source-based',
+          en_original: `All living organisms must show certain key characteristics to be classified as living. These include Movement, Sensitivity, Respiration, Nutrition, and Growth. For example, movement lets animals find food or escape predators; respiration releases chemical energy from food.`,
+          en_simplified: `Living things share important features: they move, react to the environment, breathe to get energy, eat, and grow.`,
+          cn_original: `所有生物必须表现出若干关键特征才能被归类为有生命的。这些包括运动、感应性、呼吸、营养和生长。例如，运动使动物能够寻找食物或逃避捕食者；呼吸从食物中释放化学能量。 (Adapted from GeeksforGeeks)`,
+          cn_simplified: `生物有一些重要特点：会动、会对环境作出反应、会呼吸以获取能量、会吃东西并且会长大。`,
+          source: 'https://www.geeksforgeeks.org/characteristics-of-living-things/'
+        }
+      ];
+      save(KEY_ARTICLES, seedArticles);
+    }
 
-    const users = loadLS('users', []); // {name,email,role,status}
-    function maskEmail(email){ const [u,d] = email.split('@'); if(!d) return email; return `${u.slice(0,2)}***@${d}`; }
+    if(!localStorage.getItem(KEY_QUIZZES)) {
+      const seedQuizzes = [
+        {
+          id: uid(),
+          unitId: 'unit-1',
+          title: 'Unit 1 — Basic MCQ',
+          en_orig_options: ['Nutrition','Respiration','Excretion (correct)','Growth'],
+          en_simp_options: ['Food','Breathing','Excretion (正确)','Growing'],
+          cn_orig_options: ['营养','呼吸','排泄 (正确)','生长'],
+          cn_simp_options: ['吃东西','呼吸','排泄 (正确)','长大']
+        }
+      ];
+      save(KEY_QUIZZES, seedQuizzes);
+    }
 
-    $('#registerForm').addEventListener('submit', e=>{
-      e.preventDefault();
-      const role = $('#userRole').value; const name = $('#fullName').value.trim();
-      const email = $('#registerEmail').value.trim(); const pass = $('#registerPassword').value; const cpass = $('#confirmPassword').value;
-      const err = $('#registerError');
-      if(!role){ err.textContent = 'Please select a role.'; err.classList.remove('hidden'); return; }
-      if(role==='teacher'){
-        const ok = allowedTeacherTLDs.some(tld=> email.toLowerCase().endsWith(tld));
-        if(!ok){ err.textContent = 'Teachers must use a school email (accepted academic TLDs).'; err.classList.remove('hidden'); return; }
+    // --------------------------
+    // Rendering: public sections
+    // --------------------------
+    function renderUnitsList(){
+      const units = load(KEY_UNITS, []);
+      const container = $('#unitsList');
+      if(units.length === 0){
+        container.innerHTML = `<p class="text-gray-500">No units yet.</p>`;
+        return;
       }
-      if(pass !== cpass){ err.textContent = 'Passwords do not match.'; err.classList.remove('hidden'); return; }
-      err.classList.add('hidden');
-      users.push({ name, email, role, status:'active' });
-      saveLS('users', users);
-      alert('Registration successful! You can log in now.');
-      registerModal.classList.add('hidden');
-      renderUsers();
-      updateAnalytics();
-    });
+      container.innerHTML = units.map(u => `
+        <div class="bg-white p-4 rounded shadow">
+          <div class="flex justify-between items-start">
+            <div>
+              <div class="font-semibold text-lg">${escapeHtml(u.title)}</div>
+              ${u.code ? `<div class="text-sm text-gray-500">${escapeHtml(u.code)}</div>` : ''}
+            </div>
+            <div class="text-sm text-gray-500">Unit ID: ${u.id}</div>
+          </div>
+          <div class="mt-3 grid md:grid-cols-2 gap-3">
+            <div class="bg-gray-50 p-3 rounded">
+              <div class="font-medium lang-en">English Original</div>
+              <div class="text-sm lang-en">${nl2p(escapeHtml(u.en_original))}</div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded">
+              <div class="font-medium lang-cn">中文原文</div>
+              <div class="text-sm lang-cn">${nl2p(escapeHtml(u.cn_original))}</div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded">
+              <div class="font-medium lang-en">English Simplified</div>
+              <div class="text-sm lang-en">${nl2p(escapeHtml(u.en_simplified))}</div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded">
+              <div class="font-medium lang-cn">中文简化版</div>
+              <div class="text-sm lang-cn">${nl2p(escapeHtml(u.cn_simplified))}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
 
-    $('#loginForm').addEventListener('submit', e=>{
+    function renderLibrary(){
+      // For simplicity, library shows articles as resources and groups by unit
+      const units = load(KEY_UNITS, []);
+      const articles = load(KEY_ARTICLES, []);
+      const container = $('#libraryList');
+      if(units.length === 0){ container.innerHTML = '<p class="text-gray-500">No units.</p>'; return; }
+      container.innerHTML = units.map(u => {
+        const artForUnit = articles.filter(a=>a.unitId === u.id);
+        return `
+        <div class="bg-white p-4 rounded shadow">
+          <div class="font-semibold">${escapeHtml(u.title)}</div>
+          <div class="text-sm text-gray-500 mb-2">Articles & resources for this unit</div>
+          ${artForUnit.length ? artForUnit.map(a=>`<div class="border rounded p-2 mb-2">
+              <div class="font-medium">${escapeHtml(a.title)}</div>
+              <div class="text-xs text-gray-500">Source: ${a.source ? `<a href="${escapeAttr(a.source)}" target="_blank" class="text-blue-600">${escapeHtml(a.source)}</a>` : '—'}</div>
+            </div>`).join('') : '<div class="text-gray-500 text-sm">No resources yet for this unit.</div>'}
+        </div>
+        `;
+      }).join('');
+    }
+
+    function renderArticles(){
+      const articles = load(KEY_ARTICLES, []);
+      const container = $('#articlesList');
+      if(articles.length === 0){ container.innerHTML = '<p class="text-gray-500">No articles yet.</p>'; return; }
+      container.innerHTML = articles.map(a => `
+        <div class="bg-white p-4 rounded shadow">
+          <div class="flex justify-between items-start">
+            <div class="font-semibold">${escapeHtml(a.title)}</div>
+            <div class="text-sm text-gray-500">Unit: ${getUnitTitle(a.unitId)}</div>
+          </div>
+          <div class="mt-3 grid md:grid-cols-2 gap-3">
+            <div class="bg-gray-50 p-3 rounded">
+              <div class="font-medium lang-en">English Original</div>
+              <div class="text-sm lang-en">${nl2p(escapeHtml(a.en_original))}</div>
+            </div>
+            <div class="bg-gray-50 p-3 rounded">
+              <div class="font-medium lang-cn">中文原文</div>
+              <div class="text-sm lang-cn">${nl2p(escapeHtml(a.cn_original))}</div>
+            </div>
+            <div class="bg-white p-3 rounded border">
+              <div class="font-medium lang-en">English Simplified</div>
+              <div class="text-sm lang-en">${nl2p(escapeHtml(a.en_simplified))}</div>
+            </div>
+            <div class="bg-white p-3 rounded border">
+              <div class="font-medium lang-cn">中文简化版</div>
+              <div class="text-sm lang-cn">${nl2p(escapeHtml(a.cn_simplified))}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderQuizzes(){
+      const quizzes = load(KEY_QUIZZES, []);
+      const container = $('#quizzesList');
+      if(quizzes.length === 0){ container.innerHTML = '<p class="text-gray-500">No quizzes yet.</p>'; return; }
+      container.innerHTML = quizzes.map(q => `
+        <div class="bg-white p-4 rounded shadow">
+          <div class="flex justify-between items-start">
+            <div class="font-semibold">${escapeHtml(q.title)}</div>
+            <div class="text-sm text-gray-500">Unit: ${getUnitTitle(q.unitId)}</div>
+          </div>
+          <div class="mt-3 space-y-2">
+            <div class="p-3 bg-gray-50 rounded">
+              <div class="font-medium lang-en">English Original Options</div>
+              <ul class="list-disc pl-5 text-sm lang-en">${q.en_orig_options.map(o => `<li>${escapeHtml(o)}</li>`).join('')}</ul>
+            </div>
+            <div class="p-3 bg-gray-50 rounded">
+              <div class="font-medium lang-en">English Simplified Options</div>
+              <ul class="list-disc pl-5 text-sm lang-en">${q.en_simp_options.map(o => `<li>${escapeHtml(o)}</li>`).join('')}</ul>
+            </div>
+            <div class="p-3 bg-white rounded border">
+              <div class="font-medium lang-cn">中文原文选项</div>
+              <ul class="list-disc pl-5 text-sm lang-cn">${q.cn_orig_options.map(o => `<li>${escapeHtml(o)}</li>`).join('')}</ul>
+            </div>
+            <div class="p-3 bg-white rounded border">
+              <div class="font-medium lang-cn">中文简化版选项</div>
+              <ul class="list-disc pl-5 text-sm lang-cn">${q.cn_simp_options.map(o => `<li>${escapeHtml(o)}</li>`).join('')}</ul>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // --------------------------
+    // Admin: populate unit dropdowns & admin lists
+    // --------------------------
+    function refreshAdminUnitSelectors(){
+      const units = load(KEY_UNITS, []);
+      const selA = $('#article_unit_select');
+      const selQ = $('#quiz_unit_select');
+      selA.innerHTML = `<option value="">Select Unit</option>` + units.map(u=>`<option value="${u.id}">${escapeHtml(u.title)}</option>`).join('');
+      selQ.innerHTML = `<option value="">Select Unit</option>` + units.map(u=>`<option value="${u.id}">${escapeHtml(u.title)}</option>`).join('');
+    }
+
+    function renderAdminUnitsList(){
+      const units = load(KEY_UNITS, []);
+      const container = $('#adminUnitsList');
+      container.innerHTML = units.map(u=>`
+        <div class="flex items-start justify-between p-2 border rounded">
+          <div><div class="font-semibold">${escapeHtml(u.title)}</div><div class="text-sm text-gray-500">${escapeHtml(u.code||'')}</div></div>
+          <div class="flex gap-2">
+            <button class="edit-unit text-blue-600" data-id="${u.id}">Edit</button>
+            <button class="del-unit text-red-600" data-id="${u.id}">Delete</button>
+          </div>
+        </div>
+      `).join('') || '<p class="text-gray-500">No units.</p>';
+      // attach listeners
+      $$('.del-unit').forEach(btn => btn.addEventListener('click', () => {
+        if(confirm('Delete this unit?')) {
+          let units = load(KEY_UNITS, []);
+          units = units.filter(x=>x.id !== btn.dataset.id);
+          save(KEY_UNITS, units);
+          // also remove related articles/quizzes
+          let arts = load(KEY_ARTICLES, []);
+          arts = arts.filter(a=>a.unitId !== btn.dataset.id); save(KEY_ARTICLES, arts);
+          let qus = load(KEY_QUIZZES, []);
+          qus = qus.filter(q=>q.unitId !== btn.dataset.id); save(KEY_QUIZZES, qus);
+          updateAllViews();
+        }
+      }));
+      $$('.edit-unit').forEach(btn => btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        let units = load(KEY_UNITS, []);
+        const u = units.find(x=>x.id===id);
+        if(!u) return;
+        const title = prompt('Edit unit title', u.title);
+        if(title !== null) { u.title = title; save(KEY_UNITS, units); updateAllViews(); }
+      }));
+    }
+
+    function renderAdminArticlesList(){
+      const arts = load(KEY_ARTICLES, []);
+      const container = $('#adminArticlesList');
+      container.innerHTML = arts.map(a=>`
+        <div class="flex items-start justify-between p-2 border rounded">
+          <div><div class="font-semibold">${escapeHtml(a.title)}</div><div class="text-sm text-gray-500">Unit: ${getUnitTitle(a.unitId)}</div></div>
+          <div class="flex gap-2">
+            <button class="edit-article text-blue-600" data-id="${a.id}">Edit</button>
+            <button class="del-article text-red-600" data-id="${a.id}">Delete</button>
+          </div>
+        </div>
+      `).join('') || '<p class="text-gray-500">No articles.</p>';
+      $$('.del-article').forEach(btn => btn.addEventListener('click', ()=> {
+        if(confirm('Delete this article?')) {
+          let arts = load(KEY_ARTICLES, []); arts = arts.filter(x=>x.id !== btn.dataset.id); save(KEY_ARTICLES, arts); updateAllViews();
+        }
+      }));
+      $$('.edit-article').forEach(btn => btn.addEventListener('click', ()=> {
+        const id = btn.dataset.id; let arts = load(KEY_ARTICLES, []); const a = arts.find(x=>x.id===id); if(!a) return;
+        const title = prompt('Edit title', a.title); if(title !== null) { a.title = title; save(KEY_ARTICLES, arts); updateAllViews(); }
+      }));
+    }
+
+    function renderAdminQuizzesList(){
+      const qus = load(KEY_QUIZZES, []);
+      const container = $('#adminQuizzesList');
+      container.innerHTML = qus.map(q=>`
+        <div class="flex items-start justify-between p-2 border rounded">
+          <div><div class="font-semibold">${escapeHtml(q.title)}</div><div class="text-sm text-gray-500">Unit: ${getUnitTitle(q.unitId)}</div></div>
+          <div class="flex gap-2">
+            <button class="edit-quiz text-blue-600" data-id="${q.id}">Edit</button>
+            <button class="del-quiz text-red-600" data-id="${q.id}">Delete</button>
+          </div>
+        </div>
+      `).join('') || '<p class="text-gray-500">No quizzes.</p>';
+      $$('.del-quiz').forEach(btn => btn.addEventListener('click', ()=> {
+        if(confirm('Delete this quiz?')) {
+          let qus = load(KEY_QUIZZES, []); qus = qus.filter(x=>x.id !== btn.dataset.id); save(KEY_QUIZZES, qus); updateAllViews();
+        }
+      }));
+    }
+
+    // --------------------------
+    // Helpers
+    // --------------------------
+    function getUnitTitle(id){
+      const units = load(KEY_UNITS, []);
+      const u = units.find(x=>x.id === id);
+      return u ? u.title : '—';
+    }
+    function nl2p(text){
+      if(!text) return '';
+      return text.split('\n').map(l => `<p>${l}</p>`).join('');
+    }
+    function escapeHtml(s){
+      if(!s) return '';
+      return String(s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; });
+    }
+    function escapeAttr(s){ return escapeHtml(s).replace(/"/g,'&quot;'); }
+
+    // --------------------------
+    // Admin wiring (forms)
+    // --------------------------
+    $('#unitForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const email = $('#loginEmail').value.trim(); const pass = $('#loginPassword').value;
-      const err = $('#loginError');
-      if(!email || !pass){ err.textContent = 'Please enter email and password.'; err.classList.remove('hidden'); return; }
-      const u = users.find(x=>x.email===email);
-      if(!u){ err.textContent = 'User not found. Please register.'; err.classList.remove('hidden'); return; }
-      if(u.status==='suspended'){ err.textContent = 'Account suspended. Contact admin.'; err.classList.remove('hidden'); return; }
-      err.classList.add('hidden');
-      alert(`Welcome ${u.name}!`);
-      loginModal.classList.add('hidden');
+      const units = load(KEY_UNITS, []);
+      const u = {
+        id: uid(),
+        title: $('#u_title').value.trim(),
+        code: $('#u_code').value.trim(),
+        en_original: $('#u_en_orig').value.trim(),
+        en_simplified: $('#u_en_simp').value.trim(),
+        cn_original: $('#u_cn_orig').value.trim(),
+        cn_simplified: $('#u_cn_simp').value.trim()
+      };
+      units.push(u); save(KEY_UNITS, units);
+      $('#u_title').value=''; $('#u_code').value=''; $('#u_en_orig').value=''; $('#u_en_simp').value=''; $('#u_cn_orig').value=''; $('#u_cn_simp').value='';
+      updateAllViews();
+      alert('Unit added locally (stored in this browser).');
     });
 
-    // ===== Teacher/Student simple lists (mock) =====
-    const classes = loadLS('classes', []); // {id,title,desc,code}
-    const tasks = loadLS('tasks', []); // {id,title,details}
-
-    $('#tCreateClass').addEventListener('submit', e=>{
+    $('#articleForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      const fd = new FormData(e.target); const title = fd.get('title'); const desc = fd.get('desc')||'';
-      const code = Math.random().toString(36).slice(2,8).toUpperCase();
-      const c = { id: crypto.randomUUID(), title, desc, code };
-      classes.push(c); saveLS('classes', classes); e.target.reset(); renderTeacherClasses(); updateAnalytics();
-    });
-    function renderTeacherClasses(){ const wrap = $('#tClassList'); wrap.innerHTML = classes.map(c=>`<div class='border rounded-lg p-3 flex items-center justify-between'><div><div class='font-semibold'>${c.title}</div><div class='text-sm text-gray-500'>Code: ${c.code}</div></div><button data-id='${c.id}' class='del-class text-red-600 hover:underline'>Delete</button></div>`).join('');
-      wrap.querySelectorAll('.del-class').forEach(btn=>btn.addEventListener('click',()=>confirmAction('Delete Class', 'Are you sure you want to delete this class?', ()=>{ const idx = classes.findIndex(x=>x.id===btn.dataset.id); if(idx>-1){ classes.splice(idx,1); saveLS('classes', classes); renderTeacherClasses(); updateAnalytics(); }})));
-    }
-    renderTeacherClasses();
-
-    $('#tAddTask').addEventListener('submit', e=>{
-      e.preventDefault(); const fd = new FormData(e.target); const title = fd.get('title'); const details = fd.get('details')||'';
-      const t = { id: crypto.randomUUID(), title, details }; tasks.push(t); saveLS('tasks', tasks); e.target.reset(); renderTeacherTasks();
-    });
-    function renderTeacherTasks(){ const wrap = $('#tTaskList'); wrap.innerHTML = tasks.map(t=>`<div class='border rounded-lg p-3 flex items-center justify-between'><div><div class='font-semibold'>${t.title}</div><div class='text-sm text-gray-500 line-clamp-2'>${t.details}</div></div><button data-id='${t.id}' class='del-task text-red-600 hover:underline'>Delete</button></div>`).join('');
-      wrap.querySelectorAll('.del-task').forEach(btn=>btn.addEventListener('click',()=>confirmAction('Delete Task', 'This cannot be undone.', ()=>{ const i = tasks.findIndex(x=>x.id===btn.dataset.id); if(i>-1){ tasks.splice(i,1); saveLS('tasks', tasks); renderTeacherTasks(); }})));
-    }
-    renderTeacherTasks();
-
-    // Student join & view tasks
-    const joined = loadLS('joined', []); // class ids
-    $('#sJoinClass').addEventListener('submit', e=>{
-      e.preventDefault(); const code = new FormData(e.target).get('code').trim().toUpperCase();
-      const found = classes.find(c=>c.code===code);
-      if(!found){ alert('Class not found'); return; }
-      if(!joined.includes(found.id)){ joined.push(found.id); saveLS('joined', joined); }
-      renderStudentClasses();
-    });
-    function renderStudentClasses(){ const wrap = $('#sClassList'); const list = classes.filter(c=>joined.includes(c.id)); wrap.innerHTML = list.length? list.map(c=>`<div class='border rounded-lg p-3'><div class='font-semibold'>${c.title}</div><div class='text-sm text-gray-500'>${c.desc||''}</div></div>`).join('') : '<p class="text-gray-500">Not joined any class yet.</p>'; $('#sTaskList').innerHTML = tasks.map(t=>`<div class='border rounded-lg p-3'><div class='font-semibold'>${t.title}</div><div class='text-sm text-gray-500'>${t.details}</div></div>`).join(''); }
-    renderStudentClasses();
-
-    // ===== Admin Login & Session =====
-    const adminLoginBtn = $('#adminLoginBtn'); const adminLoginModal = $('#adminLoginModal'); const closeAdminLogin = $('#closeAdminLogin');
-    const adminDashboard = $('#admin-dashboard'); const adminSessionInfo = $('#adminSessionInfo'); const adminLogout = $('#adminLogout');
-    let adminActive = false; let adminTimer = null; const ADMIN_TIMEOUT_MS = 5*60*1000; // 5 minutes demo
-
-    function startAdminTimer(){ clearTimeout(adminTimer); adminTimer = setTimeout(()=>{ adminActive=false; adminDashboard.classList.add('hidden'); alert('Admin session timed out due to inactivity.'); }, ADMIN_TIMEOUT_MS); adminSessionInfo.textContent = 'Session active (auto-logout in 5 min)'; }
-    ['click','keydown','mousemove'].forEach(evt=>document.addEventListener(evt, ()=>{ if(adminActive) startAdminTimer(); }, {passive:true}));
-
-    adminLoginBtn.addEventListener('click', ()=>adminLoginModal.classList.remove('hidden'));
-    closeAdminLogin.addEventListener('click', ()=>adminLoginModal.classList.add('hidden'));
-
-    $('#adminLoginForm').addEventListener('submit', e=>{
-      e.preventDefault(); const u = $('#adminUsername').value.trim(); const p = $('#adminPassword').value; const err = $('#adminLoginError');
-      if(u==='Chagri90' && p==='CWA2025BIO'){ err.classList.add('hidden'); adminLoginModal.classList.add('hidden'); adminDashboard.classList.remove('hidden'); adminActive=true; startAdminTimer(); alert('Welcome Admin!'); renderUsers(); renderAllAdminViews(); applySettingsUI(); updateAnalytics(); } else { err.textContent='Invalid admin credentials'; err.classList.remove('hidden'); }
+      const arts = load(KEY_ARTICLES, []);
+      const a = {
+        id: uid(),
+        unitId: $('#article_unit_select').value,
+        title: $('#a_title').value.trim(),
+        en_original: $('#a_en_orig').value.trim(),
+        en_simplified: $('#a_en_simp').value.trim(),
+        cn_original: $('#a_cn_orig').value.trim(),
+        cn_simplified: $('#a_cn_simp').value.trim(),
+        source: '' // optional
+      };
+      if(!a.unitId){ alert('Please select a unit.'); return; }
+      arts.push(a); save(KEY_ARTICLES, arts);
+      $('#a_title').value=''; $('#a_en_orig').value=''; $('#a_en_simp').value=''; $('#a_cn_orig').value=''; $('#a_cn_simp').value='';
+      updateAllViews();
+      alert('Article added locally.');
     });
 
-    adminLogout.addEventListener('click', ()=>{ adminActive=false; adminDashboard.classList.add('hidden'); clearTimeout(adminTimer); });
-
-    // ===== Admin Tabs =====
-    const tabButtons = $$('.admin-tab-btn'); const tabs = $$('.tab');
-    tabButtons.forEach(btn=>btn.addEventListener('click', ()=>{
-      const tab = btn.getAttribute('data-tab');
-      tabs.forEach(t=>t.classList.remove('active'));
-      $(`#tab-${tab}`).classList.add('active');
-      tabButtons.forEach(b=>{ b.classList.remove('bg-red-600','text-white'); b.classList.add('bg-gray-200'); });
-      btn.classList.add('bg-red-600','text-white'); btn.classList.remove('bg-gray-200');
-    }));
-
-    // ===== Units CRUD (Admin) =====
-    const units = loadLS('units', []); // {id,title,code,desc}
-    $('#unitForm').addEventListener('submit', e=>{
-      e.preventDefault(); const fd = new FormData(e.target);
-      const unit = { id: crypto.randomUUID(), title: fd.get('title').trim(), code: (fd.get('code')||'').trim(), desc: (fd.get('desc')||'').trim() };
-      units.push(unit); saveLS('units', units); e.target.reset(); renderUnits();
-    });
-    function renderUnits(){ const list = $('#unitList'); const q = ($('#unitSearch').value||'').toLowerCase(); const view = units.filter(u=>[u.title,u.code,u.desc].join(' ').toLowerCase().includes(q));
-      if(!view.length){ $('#unitEmpty').classList.remove('hidden'); list.innerHTML=''; } else { $('#unitEmpty').classList.add('hidden'); list.innerHTML = view.map(u=>`<div class='py-3 flex items-start justify-between gap-3'><div><div class='font-semibold'>${u.title} ${u.code?`<span class="text-gray-400">(${u.code})</span>`:''}</div><div class='text-sm text-gray-600'>${u.desc||''}</div></div><div class='flex gap-2'><button class='edit-unit text-blue-600' data-id='${u.id}'>Edit</button><button class='delete-unit text-red-600' data-id='${u.id}'>Delete</button></div></div>`).join(''); }
-      list.querySelectorAll('.delete-unit').forEach(b=>b.addEventListener('click',()=>confirmAction('Delete Unit','This will remove the unit.', ()=>{ const i = units.findIndex(x=>x.id===b.dataset.id); if(i>-1){ units.splice(i,1); saveLS('units', units); renderUnits(); }})));
-      list.querySelectorAll('.edit-unit').forEach(b=>b.addEventListener('click',()=>{ const u = units.find(x=>x.id===b.dataset.id); if(!u) return; const title = prompt('Edit title', u.title)||u.title; const code = prompt('Edit code', u.code)||u.code; const desc = prompt('Edit description', u.desc)||u.desc; Object.assign(u,{title,code,desc}); saveLS('units', units); renderUnits(); }));
-      renderPublicFromUnits();
-    }
-    $('#unitSearch').addEventListener('input', renderUnits);
-    renderUnits();
-    function renderPublicFromUnits(){ // populate library/exercises placeholders if wanted
-      // no-op for now but left for future linking
-    }
-
-    // ===== Library CRUD (Admin) & Public View =====
-    const resources = loadLS('resources', []); // {id,title,type,url,desc,filename}
-    function bindDropzone(zoneId){ const box = $(zoneId); const input = box.querySelector('input[type=file]');
-      box.addEventListener('click', ()=>input.click());
-      ;['dragenter','dragover'].forEach(eName=> box.addEventListener(eName, e=>{ e.preventDefault(); box.classList.add('bg-gray-50'); }));
-      ;['dragleave','drop'].forEach(eName=> box.addEventListener(eName, e=>{ e.preventDefault(); box.classList.remove('bg-gray-50'); }));
-      box.addEventListener('drop', e=>{ input.files = e.dataTransfer.files; });
-      return input;
-    }
-    const libFileInput = bindDropzone('#libDrop');
-
-    $('#libraryForm').addEventListener('submit', e=>{
-      e.preventDefault(); const fd = new FormData(e.target);
-      const r = { id: crypto.randomUUID(), title: fd.get('title').trim(), type: fd.get('type'), url: (fd.get('url')||'').trim(), desc: (fd.get('desc')||'').trim(), filename: (fd.get('file') && fd.get('file').name) || '' };
-      resources.push(r); saveLS('resources', resources); e.target.reset(); renderAdminLibrary(); renderPublicLibrary(); updateAnalytics();
+    $('#quizForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const qus = load(KEY_QUIZZES, []);
+      const q = {
+        id: uid(),
+        unitId: $('#quiz_unit_select').value,
+        title: $('#q_title').value.trim(),
+        en_orig_options: parseOptions($('#q_en_orig').value),
+        en_simp_options: parseOptions($('#q_en_simp').value),
+        cn_orig_options: parseOptions($('#q_cn_orig').value),
+        cn_simp_options: parseOptions($('#q_cn_simp').value)
+      };
+      if(!q.unitId){ alert('Please select a unit.'); return; }
+      qus.push(q); save(KEY_QUIZZES, qus);
+      $('#q_title').value=''; $('#q_en_orig').value=''; $('#q_en_simp').value=''; $('#q_cn_orig').value=''; $('#q_cn_simp').value='';
+      updateAllViews();
+      alert('Quiz added locally.');
     });
 
-    function renderAdminLibrary(){ const list = $('#adminLibraryList'); const q = ($('#adminLibrarySearch').value||'').toLowerCase(); const view = resources.filter(r=>[r.title,r.type,r.desc,r.url,r.filename].join(' ').toLowerCase().includes(q));
-      if(!view.length){ $('#adminLibraryEmpty').classList.remove('hidden'); list.innerHTML=''; }
-      else { $('#adminLibraryEmpty').classList.add('hidden'); list.innerHTML = view.map(r=>`<div class='py-3 flex items-start justify-between gap-3'><div><div class='font-semibold'>${r.title} <span class='text-gray-400'>[${r.type}]</span></div><div class='text-sm text-gray-600'>${r.desc||''}</div><div class='text-xs text-gray-500'>${r.url?`URL: ${r.url}`:''} ${r.filename?`File: ${r.filename}`:''}</div></div><div class='flex gap-2'><button class='edit-res text-blue-600' data-id='${r.id}'>Edit</button><button class='del-res text-red-600' data-id='${r.id}'>Delete</button></div></div>`).join(''); }
-      list.querySelectorAll('.del-res').forEach(b=>b.addEventListener('click',()=>confirmAction('Delete Resource','Remove from library?', ()=>{ const i=resources.findIndex(x=>x.id===b.dataset.id); if(i>-1){ resources.splice(i,1); saveLS('resources', resources); renderAdminLibrary(); renderPublicLibrary(); updateAnalytics(); }})));
-      list.querySelectorAll('.edit-res').forEach(b=>b.addEventListener('click',()=>{ const r=resources.find(x=>x.id===b.dataset.id); if(!r) return; const title=prompt('Edit title', r.title)||r.title; const type=prompt('Edit type (article/video)', r.type)||r.type; const url=prompt('Edit URL', r.url)||r.url; const desc=prompt('Edit description', r.desc)||r.desc; Object.assign(r,{title,type,url,desc}); saveLS('resources', resources); renderAdminLibrary(); renderPublicLibrary(); }));
+    function parseOptions(text){
+      // split lines, treat lines starting with * as correct marked but keep text
+      return text.split('\n').map(l=>l.trim()).filter(Boolean);
     }
-    $('#adminLibrarySearch').addEventListener('input', renderAdminLibrary);
 
-    function renderPublicLibrary(){ const list = $('#libraryList'); const empty = $('#libraryEmpty'); const q=($('#librarySearch').value||'').toLowerCase(); const f=$('#libraryFilter').value;
-      const view = resources.filter(r=> (f==='all'||r.type===f) && [r.title,r.desc,r.type].join(' ').toLowerCase().includes(q));
-      if(!view.length){ empty.classList.remove('hidden'); list.innerHTML=''; }
-      else { empty.classList.add('hidden'); list.innerHTML = view.map(r=>`<div class='bg-white p-4 rounded-xl shadow'><h3 class='text-lg font-semibold mb-1 text-green-700'>${r.title}</h3><p class='text-gray-600 mb-2'>${r.desc||''}</p>${r.url?`<a class='text-blue-600 hover:underline' href='${r.url}' target='_blank' rel='noopener'>Open</a>`:''}</div>`).join(''); }
-      updateAnalytics();
-    }
-    $('#librarySearch').addEventListener('input', renderPublicLibrary);
-    $('#libraryFilter').addEventListener('change', renderPublicLibrary);
-
-    // ===== Quizzes CRUD (Admin) & Public Exercises =====
-    const quizzes = loadLS('quizzes', []); // {id,title,category,url,desc,filename}
-    const quizFileInput = bindDropzone('#quizDrop');
-    $('#quizForm').addEventListener('submit', e=>{
-      e.preventDefault(); const fd = new FormData(e.target);
-      const q = { id: crypto.randomUUID(), title: fd.get('title').trim(), category: fd.get('category'), url: (fd.get('url')||'').trim(), desc: (fd.get('desc')||'').trim(), filename: (fd.get('file') && fd.get('file').name) || '' };
-      quizzes.push(q); saveLS('quizzes', quizzes); e.target.reset(); renderQuizzes(); renderExercises();
+    // --------------------------
+    // Admin tab navigation & open/close
+    // --------------------------
+    $$('.admin-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tab = btn.dataset.tab;
+        $$('.admin-tab-btn').forEach(b => { b.classList.remove('bg-red-600','text-white'); b.classList.add('bg-gray-200'); });
+        btn.classList.add('bg-red-600','text-white');
+        $$('.admin-tab-panel').forEach(p => p.classList.add('hidden'));
+        $('#' + tab).classList.remove('hidden');
+      });
     });
-    function renderQuizzes(){ const list = $('#quizList'); const qtxt = ($('#quizSearch').value||'').toLowerCase(); const view = quizzes.filter(q=>[q.title,q.category,q.desc,q.url,q.filename].join(' ').toLowerCase().includes(qtxt));
-      if(!view.length){ $('#quizEmpty').classList.remove('hidden'); list.innerHTML=''; }
-      else { $('#quizEmpty').classList.add('hidden'); list.innerHTML = view.map(q=>`<div class='py-3 flex items-start justify-between gap-3'><div><div class='font-semibold'>${q.title} <span class='text-gray-400'>[${q.category}]</span></div><div class='text-sm text-gray-600'>${q.desc||''}</div><div class='text-xs text-gray-500'>${q.url?`URL: ${q.url}`:''} ${q.filename?`File: ${q.filename}`:''}</div></div><div class='flex gap-2'><button class='edit-quiz text-blue-600' data-id='${q.id}'>Edit</button><button class='del-quiz text-red-600' data-id='${q.id}'>Delete</button></div></div>`).join(''); }
-      list.querySelectorAll('.del-quiz').forEach(b=>b.addEventListener('click',()=>confirmAction('Delete Quiz','Remove this quiz?', ()=>{ const i=quizzes.findIndex(x=>x.id===b.dataset.id); if(i>-1){ quizzes.splice(i,1); saveLS('quizzes', quizzes); renderQuizzes(); renderExercises(); }})));
-      list.querySelectorAll('.edit-quiz').forEach(b=>b.addEventListener('click',()=>{ const q=quizzes.find(x=>x.id===b.dataset.id); if(!q) return; const title=prompt('Edit title', q.title)||q.title; const category=prompt('Edit category', q.category)||q.category; const url=prompt('Edit URL', q.url)||q.url; const desc=prompt('Edit description', q.desc)||q.desc; Object.assign(q,{title,category,url,desc}); saveLS('quizzes', quizzes); renderQuizzes(); renderExercises(); }));
+
+    $('#adminOpenBtn').addEventListener('click', ()=> $('#adminLoginModal').classList.remove('hidden'));
+    $('#closeAdminModal').addEventListener('click', ()=> $('#adminLoginModal').classList.add('hidden'));
+    $('#adminCloseBtn').addEventListener('click', ()=> { $('#adminDashboardSection').classList.add('hidden'); window.scrollTo({top:0, behavior:'smooth'}); });
+
+    // Admin login logic (client-side only)
+    $('#adminLoginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const u = $('#adminUser').value.trim();
+      const p = $('#adminPass').value;
+      if(u === 'Chagri90' && p === 'CWA2025BIO'){
+        $('#adminLoginModal').classList.add('hidden');
+        $('#adminDashboardSection').classList.remove('hidden');
+        // initialize admin UI
+        refreshAdminUnitSelectors();
+        renderAdminUnitsList(); renderAdminArticlesList(); renderAdminQuizzesList();
+        // set default admin tab
+        $$('.admin-tab-btn')[0].click();
+        updateAllViews(); // ensure public view reflects state
+        // scroll to admin dashboard
+        document.getElementById('adminDashboardSection').scrollIntoView({behavior:'smooth'});
+      } else {
+        $('#adminErr').classList.remove('hidden'); $('#adminErr').textContent = 'Invalid admin credentials';
+      }
+    });
+
+    // --------------------------
+    // Language toggle
+    // --------------------------
+    const langToggle = $('#langToggle');
+    langToggle.addEventListener('click', () => {
+      const showingCn = langToggle.textContent === 'EN';
+      $$('.lang-en').forEach(el => el.style.display = showingCn ? 'none' : 'block');
+      $$('.lang-cn').forEach(el => el.style.display = showingCn ? 'block' : 'none');
+      langToggle.textContent = showingCn ? '中文' : 'EN';
+    });
+
+    // --------------------------
+    // Update all views (renderers)
+    // --------------------------
+    function updateAllViews(){
+      renderUnitsList();
+      renderLibrary();
+      renderArticles();
+      renderQuizzes();
+      refreshAdminUnitSelectors();
+      renderAdminUnitsList();
+      renderAdminArticlesList();
+      renderAdminQuizzesList();
     }
-    $('#quizSearch').addEventListener('input', renderQuizzes);
 
-    function renderExercises(){ const list = $('#exerciseList'); const empty = $('#exerciseEmpty');
-      if(!quizzes.length){ empty.classList.remove('hidden'); list.innerHTML=''; }
-      else { empty.classList.add('hidden'); list.innerHTML = quizzes.map(q=>`<div class='border rounded-xl p-4'><h4 class='font-semibold mb-1'>${q.title}</h4><p class='text-sm text-gray-600 mb-2'>${q.desc||''}</p>${q.url?`<a class='text-blue-600 hover:underline' href='${q.url}' target='_blank' rel='noopener'>Open</a>`:''}</div>`).join(''); }
-      updateAnalytics();
+    // initial render
+    updateAllViews();
+
+    // --------------------------
+    // small helpers: escape for innerHTML etc.
+    // --------------------------
+    function ensureSeeded() {
+      // left as placeholder if future migration needed
     }
 
-    // ===== Users (Admin) =====
-    function renderUsers(){ const list = $('#userList'); const q = ($('#userSearch').value||'').toLowerCase(); const view = users.filter(u=>[u.name,u.email,u.role,u.status].join(' ').toLowerCase().includes(q));
-      if(!view.length){ $('#userEmpty').classList.remove('hidden'); list.innerHTML=''; }
-      else { $('#userEmpty').classList.add('hidden'); list.innerHTML = view.map(u=>`<div class='py-3 flex items-center justify-between'><div><div class='font-semibold'>${u.name} <span class='text-gray-400'>[${u.role}]</span></div><div class='text-sm text-gray-600 masked'>${maskEmail(u.email)}</div><div class='text-xs text-gray-500'>Status: ${u.status}</div></div><div class='flex gap-3 items-center'><button class='assist-user text-green-700' data-email='${u.email}'>Assist</button><button class='toggle-user text-${u.status==='active'?'red':'green'}-700' data-email='${u.email}'>${u.status==='active'?'Suspend':'Activate'}</button></div></div>`).join(''); }
-      list.querySelectorAll('.toggle-user').forEach(b=>b.addEventListener('click',()=>{ const u = users.find(x=>x.email===b.dataset.email); if(!u) return; const to = u.status==='active'?'suspend':'activate'; confirmAction(`${to==='suspend'?'Suspend':'Activate'} User`, `Are you sure you want to ${to} this account?`, ()=>{ u.status = (u.status==='active')?'suspended':'active'; saveLS('users', users); renderUsers(); }); }));
-      list.querySelectorAll('.assist-user').forEach(b=>b.addEventListener('click',()=>{ alert(`Assist ticket opened for ${b.dataset.email}`); }));
-      updateAnalytics();
-    }
-    $('#userSearch').addEventListener('input', renderUsers);
+    // expose updateAllViews for console debugging
+    window.updateCwaViews = updateAllViews;
 
-    // ===== Confirm Modal Utility =====
-    function confirmAction(title, message, onOk){ const modal=$('#confirmModal'); $('#confirmTitle').textContent=title; $('#confirmMessage').textContent=message; modal.classList.remove('hidden'); const ok=$('#confirmOk'); const cancel=$('#confirmCancel'); function cleanup(){ ok.replaceWith(ok.cloneNode(true)); cancel.replaceWith(cancel.cloneNode(true)); $('#confirmOk').addEventListener('click', ()=>{ modal.classList.add('hidden'); onOk&&onOk(); }); $('#confirmCancel').addEventListener('click', ()=> modal.classList.add('hidden')); }
-      cleanup(); }
-
-    // ===== Settings (Admin) =====
-    const settings = loadLS('settings', { siteName:'CWA-Biology', announcement:'', toggles:{ library:true, exercises:true, assignments:true, progress:true, teacher:true, student:true } });
-    function applySettingsUI(){ $('#settingSiteName').value = settings.siteName; $('#settingAnnouncement').value = settings.announcement; $$('.setting-toggle').forEach(inp=> inp.checked = !!settings.toggles[inp.dataset.target]); applySettingsPublic(); }
-    function applySettingsPublic(){ // title
-      $('#siteName').textContent = settings.siteName || 'CWA-Biology';
-      const banner = $('#globalAnnouncement'); banner.textContent = settings.announcement||''; banner.classList.toggle('hidden', !settings.announcement);
-      // toggles on sections
-      $$('[data-controlled]').forEach(sec=>{ const key = sec.getAttribute('data-controlled'); const show = settings.toggles[key] !== false; sec.classList.toggle('hidden', !show); });
-    }
-    $('#settingsForm').addEventListener('submit', e=>{ e.preventDefault(); settings.siteName = $('#settingSiteName').value.trim() || 'CWA-Biology'; settings.announcement = $('#settingAnnouncement').value.trim(); settings.toggles = settings.toggles || {}; $$('.setting-toggle').forEach(inp=> settings.toggles[inp.dataset.target] = inp.checked); saveLS('settings', settings); applySettingsPublic(); alert('Settings saved'); });
-    $('#settingsReset').addEventListener('click', ()=>{ localStorage.removeItem('settings'); Object.assign(settings, { siteName:'CWA-Biology', announcement:'', toggles:{ library:true, exercises:true, assignments:true, progress:true, teacher:true, student:true } }); applySettingsUI(); alert('Settings reset'); });
-
-    // ===== Rendering boot =====
-    function renderAllAdminViews(){ renderUnits(); renderAdminLibrary(); renderQuizzes(); renderUsers(); renderExercises(); renderPublicLibrary(); }
-    renderAllAdminViews(); applySettingsUI();
-
-    // ===== Analytics =====
-    function updateAnalytics(){ $('#statStudents').textContent = users.filter(u=>u.role==='student').length; $('#statTeachers').textContent = users.filter(u=>u.role==='teacher').length; $('#statClasses').textContent = classes.length; $('#statResources').textContent = resources.length; }
-    updateAnalytics();
   })();
   </script>
+
+  <!-- Footer / citation -->
+  <footer class="bg-white border-t mt-8">
+    <div class="max-w-6xl mx-auto p-6 text-sm text-gray-600">
+      <div>Sample article adapted from: GeeksforGeeks — "Characteristics of Living Things". Source: <a href="https://www.geeksforgeeks.org/characteristics-of-living-things/" target="_blank" class="text-blue-600">geeksforgeeks.org</a></div>
+      <div class="mt-2">Note: This portal is static & stores admin changes in your browser <strong>localStorage</strong>. To make content persistent across devices/users you must connect to a backend (Supabase/Firebase) — I can help with that next.</div>
+    </div>
+  </footer>
+
 </body>
 </html>
